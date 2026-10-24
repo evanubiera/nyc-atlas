@@ -174,7 +174,7 @@ HTTP 302 → `https://api.census.gov/data/missing_key.html`. This changed from t
 long-standing behaviour of allowing low-volume anonymous use. Get a free key at
 <https://api.census.gov/data/key_signup.html> and set `CENSUS_API_KEY` in `.env`.
 
-Planned ACS variables (2023 ACS 5-year, `/data/2023/acs/acs5`):
+Planned ACS variables (2024 ACS 5-year, `/data/2024/acs/acs5`):
 
 | Variable | Meaning |
 |---|---|

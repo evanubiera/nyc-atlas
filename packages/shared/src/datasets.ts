@@ -77,8 +77,13 @@ export const FACDB_BROAD_DOMAINS: readonly string[] = [
   'PARKS, GARDENS, AND HISTORICAL SITES',
 ];
 
-export const CENSUS_ACS_BASE = 'https://api.census.gov/data/2023/acs/acs5';
-export const CENSUS_ACS_VINTAGE = '2023 ACS 5-year';
+/**
+ * Most recent published ACS 5-year release. Verified available 2026-10-24;
+ * 2025 returns 404. Probe before bumping — an unpublished vintage returns a
+ * misleading `invalid_key` redirect rather than a 404.
+ */
+export const CENSUS_ACS_BASE = 'https://api.census.gov/data/2024/acs/acs5';
+export const CENSUS_ACS_VINTAGE = '2024 ACS 5-year';
 
 /**
  * ACS variables pulled at tract level and aggregated to NTA2020.
