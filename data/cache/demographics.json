@@ -1,0 +1,5 @@
+{
+  "available": false,
+  "byNta": {},
+  "unavailableReason": "CENSUS_API_KEY is not set. Rates and confounder adjustment require population denominators from the ACS."
+}

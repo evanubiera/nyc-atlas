@@ -6,6 +6,8 @@ import { join } from 'node:path';
 import { SocrataModule } from './socrata/socrata.module.js';
 import { GeographyModule } from './geography/geography.module.js';
 import { AtlasResolver } from './graphql/atlas.resolver.js';
+import { MetricsResolver } from './graphql/metrics.resolver.js';
+import { MetricsModule } from './metrics/metrics.module.js';
 
 @Module({
   imports: [
@@ -20,7 +22,8 @@ import { AtlasResolver } from './graphql/atlas.resolver.js';
     }),
     SocrataModule,
     GeographyModule,
+    MetricsModule,
   ],
-  providers: [AtlasResolver],
+  providers: [AtlasResolver, MetricsResolver],
 })
 export class AppModule {}

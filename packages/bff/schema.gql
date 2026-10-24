@@ -19,6 +19,31 @@ type Capabilities {
   socrataTokenConfigured: Boolean!
 }
 
+type CorrelationPayload {
+  adjusted: Float
+  confounders: [String!]!
+
+  """Required. Association, never causation."""
+  interpretation: String!
+  modelRSquared: Float
+  n: Int!
+  raw: Float!
+}
+
+enum CrimeCategory {
+  ADMINISTRATIVE
+  DISORDER
+  DRUGS
+  FRAUD
+  PROPERTY
+  SHOOTING
+  TRAFFIC
+  UNKNOWN
+  VIOLENT_PERSON
+  VIOLENT_PROPERTY
+  WEAPONS
+}
+
 """Where a single upstream dataset came from and when."""
 type DatasetProvenance {
   """Socrata dataset id, e.g. 5ucz-vwe8."""
@@ -68,6 +93,54 @@ enum ExclusionKind {
   NO_DEMOGRAPHICS
 }
 
+type ExclusionNote {
+  explanation: String!
+  kind: String!
+}
+
+enum ExposureMeasure {
+  ACCESS
+  DENSITY
+  PER_CAPITA
+}
+
+type InstitutionPoint {
+  discipline: String
+  facilitySubgroup: String
+  id: String!
+  lat: Float!
+  lon: Float!
+  name: String!
+  nta2020: String
+  scope: String!
+  source: String!
+}
+
+enum InstitutionScope {
+  BROAD
+  NARROW
+  STANDARD
+}
+
+input MetricsInput {
+  boroughCodes: [Int!]
+  category: CrimeCategory! = SHOOTING
+  exposure: ExposureMeasure! = PER_CAPITA
+  from: String! = "2006-01"
+  scope: InstitutionScope! = STANDARD
+  to: String! = "2100-01"
+}
+
+type MetricsPayload {
+  """Never empty when qualification is needed."""
+  caveats: [String!]!
+  demographicsAvailable: Boolean!
+  outcomeMode: OutcomeMode!
+  residualExtent: [Float!]
+  rows: [NeighborhoodMetric!]!
+  scaleBreaks: [Float!]!
+}
+
 """A 2020 Neighborhood Tabulation Area — the analytical unit."""
 type Neighborhood {
   boroughCode: Int!
@@ -88,6 +161,46 @@ type Neighborhood {
   nta2020: String!
 }
 
+"""One neighborhood, joined across crime, institutions and demographics."""
+type NeighborhoodMetric {
+  boroughCode: Int!
+  boroughName: String!
+  centroid: [Float!]!
+  confidenceInterval: [Float!]
+  excluded: ExclusionNote
+  exposureValue: Float
+  institutionCount: Int!
+  institutionsPer10k: Float
+  institutionsPerSqKm: Float!
+  isEnforcementDriven: Boolean!
+  landAreaSqKm: Float!
+  medianHouseholdIncome: Float
+  name: String!
+  nta2020: String!
+  population: Int
+  povertyRate: Float
+
+  """Unsmoothed. Shown for honesty, not for color."""
+  ratePer100k: Float
+  rawCount: Int!
+
+  """
+  Observed minus predicted rate after adjusting for income, poverty, density, age and tenure. Positive means more incidents than socioeconomics alone would predict.
+  """
+  residual: Float
+
+  """Empirical-Bayes shrunk. Drives the color scale."""
+  smoothedRatePer100k: Float
+}
+
+"""
+RATE_PER_100K needs ACS population. COUNT_PER_SQKM is the fallback when no Census key is configured — a real measure, but not the same quantity.
+"""
+enum OutcomeMode {
+  COUNT_PER_SQKM
+  RATE_PER_100K
+}
+
 """Full data lineage for a response."""
 type Provenance {
   """
@@ -99,9 +212,38 @@ type Provenance {
   warnings: [String!]!
 }
 
+type QualityRejection {
+  count: Int!
+  dataset: String!
+  reason: String!
+}
+
+type QualityReportPayload {
+  generatedAt: String!
+  notes: [String!]!
+  recoveredViaFallback: Int!
+  rejections: [QualityRejection!]!
+  totalRowsProcessed: Int!
+  unmappedOffenses: [String!]!
+}
+
 type Query {
   """What this deployment can actually do with its current credentials."""
   capabilities: Capabilities!
+
+  """
+  Raw and confounder-adjusted association between cultural access and the outcome. The interpretation field is non-nullable by design.
+  """
+  correlation(input: MetricsInput!): CorrelationPayload!
+  dataQualityReport: QualityReportPayload
+
+  """Cultural institutions at the requested scope."""
+  institutions(scope: InstitutionScope! = STANDARD): [InstitutionPoint!]!
+
+  """
+  Per-neighborhood crime, cultural-institution exposure and demographics. Rates are empirical-Bayes smoothed; residuals adjust for socioeconomic confounders.
+  """
+  metrics(input: MetricsInput!): MetricsPayload!
   neighborhood(nta2020: String!): Neighborhood
 
   """
@@ -118,7 +260,33 @@ type Query {
   provenance: Provenance!
 
   """
+  Neighborhoods binned by cultural-institution exposure, lowest to highest, with the pooled outcome rate and a Poisson interval per bin. This is the direct answer to "what is crime like where cultural institutions are absent?"
+  """
+  quintiles(input: MetricsInput!): QuintilePayload!
+
+  """
   Resolves a coordinate to its NTA via R-tree bbox lookup plus exact point-in-polygon. Returns null for points outside every NTA, including geocoding failures such as (0,0). This is the spatial join that assigns crime incidents to neighborhoods — see specs/004.
   """
   resolvePoint(lat: Float!, lon: Float!): Neighborhood
+}
+
+type QuintileBucket {
+  confidenceInterval: [Float!]!
+  exposureRange: [Float!]!
+  meanOutcomeRate: Float!
+  neighborhoodCount: Int!
+  quintile: Int!
+  totalCount: Int!
+
+  """
+  The denominator for this bucket. Resident population in RATE_PER_100K mode; land area in COUNT_PER_SQKM mode, which is fractional — hence Float, not Int.
+  """
+  totalPopulation: Float!
+}
+
+type QuintilePayload {
+  buckets: [QuintileBucket!]!
+  caveats: [String!]!
+  demographicsAvailable: Boolean!
+  outcomeMode: OutcomeMode!
 }

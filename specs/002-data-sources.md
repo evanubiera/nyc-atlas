@@ -205,6 +205,7 @@ These are real, measured on live data — not hypothetical.
 | Null `discipline` | 121 DCLA rows | Bucket as `UNKNOWN`, show in counts, never silently drop |
 | Geocoding | 0 null `latitude` in current YTD — better than documented | Still guard: reject `(0,0)` and anything outside the NYC bounding box |
 | Non-residential NTAs | 65 of 262 | Filter `ntatype = '0'` |
+| **Transposed coordinates** | **23,988 of 24,310 shooting rows (98.7%) have `latitude` and `longitude` swapped.** The swap is time-correlated: every record from 2006-01-01 to 2025-12-31 is reversed; only the 321 rows added in 2026 are correct. Complaint datasets are unaffected (0 of 10.3M) | Resolve per row by range via `resolveCoordinatePair`. NYC's latitude band [40.4, 41.0] and longitude band [-74.3, -73.7] do not overlap, so orientation is unambiguous. Without this, a bounds check silently discards 98.7% of the city's shooting data |
 | **Borough prefix mismatch** | Exactly 1 of 262 NTAs: Rikers Island is `QN0151` (Queens prefix) but `boroname` Bronx, `borocode` 2 — legally Bronx, reached via Queens | Never derive borough from `nta2020.slice(0,2)`; always read `borocode`/`boroname` |
 | Daytime population | Midtown/FiDi have huge daytime populations and small residential ones, inflating per-resident rates | Flag affected NTAs in the UI; offer raw counts as an alternative denominator |
 

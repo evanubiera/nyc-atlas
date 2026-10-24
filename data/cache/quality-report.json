@@ -1,0 +1,59 @@
+{
+  "coordinatesRepaired": 23988,
+  "generatedAt": "2026-10-24T17:50:50.709Z",
+  "notes": [
+    "Historic complaints (2006-2019, qgea-i56i) were not ingested. Run with --historic to include them; shootings already span 2006-present.",
+    "No Census key: per-capita rates and confounder-adjusted views are unavailable.",
+    "Repaired 23,988 incident rows whose latitude and longitude columns were transposed upstream. The Shootings dataset (5ucz-vwe8) ships every record from 2006-01-01 to 2025-12-31 reversed; only 2026 additions are correct. Without this repair 98.7% of shootings would be silently discarded."
+  ],
+  "recoveredViaFallback": 3,
+  "rejections": [
+    {
+      "count": 1738,
+      "dataset": "institutions",
+      "reason": "duplicate across DCLA and FacDB"
+    },
+    {
+      "count": 429,
+      "dataset": "institutions",
+      "reason": "FacDB: missing or out-of-bounds coordinates"
+    },
+    {
+      "count": 267,
+      "dataset": "institutions",
+      "reason": "DCLA: missing or out-of-bounds coordinates"
+    },
+    {
+      "count": 92,
+      "dataset": "5uac-w243",
+      "reason": "date before 2006 (data-entry error)"
+    },
+    {
+      "count": 63,
+      "dataset": "institutions",
+      "reason": "FacDB: could not resolve to an NTA"
+    },
+    {
+      "count": 34,
+      "dataset": "5uac-w243",
+      "reason": "point fell outside every NTA polygon"
+    },
+    {
+      "count": 3,
+      "dataset": "5uac-w243",
+      "reason": "coordinates missing, (0,0), or outside the NYC bounding box"
+    },
+    {
+      "count": 1,
+      "dataset": "5ucz-vwe8",
+      "reason": "point fell outside every NTA polygon"
+    },
+    {
+      "count": 1,
+      "dataset": "5ucz-vwe8",
+      "reason": "coordinates missing, (0,0), or outside the NYC bounding box"
+    }
+  ],
+  "totalRowsProcessed": 303823,
+  "unmappedOffenses": []
+}

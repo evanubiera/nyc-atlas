@@ -79,6 +79,50 @@ export function isWithinNycBounds(lon: number, lat: number): boolean {
  */
 export const NTA_CODE_PREFIX_IS_UNRELIABLE = true;
 
+/**
+ * Resolves a coordinate pair whose column order cannot be trusted.
+ *
+ * The Shootings dataset (5ucz-vwe8) ships its `latitude` and `longitude`
+ * columns TRANSPOSED for 23,988 of its 24,310 rows — verified 2026-10-24. The
+ * swap is time-correlated: every record from 2006-01-01 through 2025-12-31 is
+ * reversed, while the 321 records added in 2026 are correct. A naive reader
+ * either discards 98.7% of the city's shooting data on a bounds check, or plots
+ * it off the coast of Africa.
+ *
+ * Recovery is unambiguous because NYC's latitude band [40.4, 41.0] and
+ * longitude band [-74.3, -73.7] do not overlap: at most one assignment of the
+ * two values can be valid. Returns null when neither orientation works, so
+ * genuinely broken rows are still rejected rather than guessed at.
+ *
+ * Applied to every incident source, not just shootings — the complaint sets are
+ * correctly oriented today, and this keeps a future regression from going
+ * unnoticed.
+ */
+export function resolveCoordinatePair(
+  a: number,
+  b: number,
+): { lon: number; lat: number; wasSwapped: boolean } | null {
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+
+  // Documented order: (latitude, longitude).
+  if (isPlausibleLat(a) && isPlausibleLon(b)) {
+    return { lon: b, lat: a, wasSwapped: false };
+  }
+  // Transposed order: the value in `latitude` is really a longitude.
+  if (isPlausibleLon(a) && isPlausibleLat(b)) {
+    return { lon: a, lat: b, wasSwapped: true };
+  }
+  return null;
+}
+
+function isPlausibleLat(v: number): boolean {
+  return v >= NYC_BOUNDS.minLat && v <= NYC_BOUNDS.maxLat;
+}
+
+function isPlausibleLon(v: number): boolean {
+  return v >= NYC_BOUNDS.minLon && v <= NYC_BOUNDS.maxLon;
+}
+
 /** NTAs below this population get no rate display — see specs/007 §7. */
 export const MIN_POPULATION_FOR_RATE = 1000;
 
