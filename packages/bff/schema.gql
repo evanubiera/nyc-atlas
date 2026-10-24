@@ -1,0 +1,124 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+"""
+Runtime capability report — what is available with current credentials.
+"""
+type Capabilities {
+  """
+  False when CENSUS_API_KEY is unset; demographic features degrade to cache.
+  """
+  censusApiAvailable: Boolean!
+  degradedFeatures: [String!]!
+  geographyLoaded: Boolean!
+  neighborhoodCount: Int!
+  residentialNeighborhoodCount: Int!
+
+  """True when SOCRATA_APP_TOKEN raises rate limits."""
+  socrataTokenConfigured: Boolean!
+}
+
+"""Where a single upstream dataset came from and when."""
+type DatasetProvenance {
+  """Socrata dataset id, e.g. 5ucz-vwe8."""
+  id: String!
+  name: String!
+  notes: String
+  purpose: String!
+  rowCount: Int
+  rowsUpdatedAt: String
+}
+
+"""ACS demographics aggregated from census tracts to the 2020 NTA."""
+type Demographics {
+  acsVintage: String!
+  contributingTracts: Int!
+  medianHouseholdIncome: Float
+
+  """
+  Always true. Medians cannot be summed across tracts, so this is a population-weighted mean of tract medians.
+  """
+  medianIncomeIsApproximated: Boolean!
+  ownerOccupancyRate: Float
+  population: Int!
+  populationDensityPerSqKm: Float!
+  povertyRate: Float
+  shareAged15to24: Float
+}
+
+"""Why a neighborhood carries no rate. Rendered, never silently dropped."""
+type Exclusion {
+  explanation: String!
+  kind: ExclusionKind!
+
+  """ntatype for NON_RESIDENTIAL exclusions."""
+  ntatype: String
+
+  """Population for LOW_POPULATION exclusions."""
+  population: Int
+}
+
+"""
+Why a neighborhood is omitted from rate displays, while still being rendered.
+"""
+enum ExclusionKind {
+  LOW_POPULATION
+  NON_RESIDENTIAL
+  NO_DEMOGRAPHICS
+}
+
+"""A 2020 Neighborhood Tabulation Area — the analytical unit."""
+type Neighborhood {
+  boroughCode: Int!
+  boroughName: String!
+  cdta2020: String!
+
+  """[lon, lat]"""
+  centroid: [Float!]!
+  demographics: Demographics
+  exclusion: Exclusion
+
+  """True when ntatype = '0'. 197 of 262 NTAs."""
+  isResidential: Boolean!
+  landAreaSqKm: Float!
+  name: String!
+
+  """2020 NTA code, e.g. BX0101."""
+  nta2020: String!
+}
+
+"""Full data lineage for a response."""
+type Provenance {
+  """
+  Required attribution. This application shows statistical associations and does not establish causation.
+  """
+  attribution: String!
+  datasets: [DatasetProvenance!]!
+  ingestVersion: String!
+  warnings: [String!]!
+}
+
+type Query {
+  """What this deployment can actually do with its current credentials."""
+  capabilities: Capabilities!
+  neighborhood(nta2020: String!): Neighborhood
+
+  """
+  Simplified NTA geometry as a GeoJSON FeatureCollection, serialised. Raw upstream geometry is 4.38 MB; this is reduced for transport (specs/001 NFR-3).
+  """
+  neighborhoodGeometry: String!
+
+  """
+  The 2020 NTAs. Non-residential areas are included but carry an `exclusion`, so the client can render them as excluded rather than omitting them silently.
+  """
+  neighborhoods(boroughCode: Int, residentialOnly: Boolean! = false): [Neighborhood!]!
+
+  """Data lineage. Required by specs/001 FR-4.2."""
+  provenance: Provenance!
+
+  """
+  Resolves a coordinate to its NTA via R-tree bbox lookup plus exact point-in-polygon. Returns null for points outside every NTA, including geocoding failures such as (0,0). This is the spatial join that assigns crime incidents to neighborhoods — see specs/004.
+  """
+  resolvePoint(lat: Float!, lon: Float!): Neighborhood
+}

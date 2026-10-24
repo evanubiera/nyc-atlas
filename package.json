@@ -1,0 +1,24 @@
+{
+  "name": "nyc-census-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NYC Cultural Infrastructure & Neighborhood Safety Atlas",
+  "license": "MIT",
+  "engines": { "node": ">=20.0.0" },
+  "workspaces": ["packages/shared", "packages/bff", "packages/web"],
+  "scripts": {
+    "build": "npm run build -w @nyc-atlas/shared && npm run build -w @nyc-atlas/bff && npm run build -w @nyc-atlas/web",
+    "build:shared": "npm run build -w @nyc-atlas/shared",
+    "dev": "npm run build:shared && concurrently -n bff,web -c blue,green \"npm:dev:bff\" \"npm:dev:web\"",
+    "dev:bff": "npm run dev -w @nyc-atlas/bff",
+    "dev:web": "npm run dev -w @nyc-atlas/web",
+    "typecheck": "tsc -b packages/shared packages/bff packages/web",
+    "verify:sources": "node scripts/verify-sources.mjs",
+    "ingest": "npm run ingest -w @nyc-atlas/bff",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "~6.0.3"
+  }
+}

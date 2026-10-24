@@ -1,0 +1,26 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
+import { join } from 'node:path';
+import { SocrataModule } from './socrata/socrata.module.js';
+import { GeographyModule } from './geography/geography.module.js';
+import { AtlasResolver } from './graphql/atlas.resolver.js';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env', '../../.env'] }),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), 'schema.gql'),
+      sortSchema: true,
+      playground: false,
+      // Apollo's built-in Explorer; the v4 playground plugin is gone in Apollo 5.
+      introspection: true,
+    }),
+    SocrataModule,
+    GeographyModule,
+  ],
+  providers: [AtlasResolver],
+})
+export class AppModule {}

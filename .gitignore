@@ -1,0 +1,22 @@
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+
+# Raw data dumps are large and reproducible from the APIs — never commit them.
+# data/cache/ IS committed: it is small, deterministic, and lets the app run offline.
+data/raw/
+*.csv.gz
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
