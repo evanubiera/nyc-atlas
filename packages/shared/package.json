@@ -12,8 +12,8 @@
   },
   "scripts": {
     "build": "tsc -b",
-    "clean": "rm -rf dist *.tsbuildinfo",
-    "test": "node --test \"dist/**/*.test.js\""
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "test": "test -f dist/crime-categories.test.js || (echo \"no compiled tests found \u2014 run npm run build first\" && exit 1) && node --test \"dist/**/*.test.js\""
   },
   "devDependencies": {
     "@types/node": "^22.13.1"

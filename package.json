@@ -4,8 +4,14 @@
   "private": true,
   "description": "NYC Cultural Infrastructure & Neighborhood Safety Atlas",
   "license": "MIT",
-  "engines": { "node": ">=20.0.0" },
-  "workspaces": ["packages/shared", "packages/bff", "packages/web"],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "workspaces": [
+    "packages/shared",
+    "packages/bff",
+    "packages/web"
+  ],
   "scripts": {
     "build": "npm run build -w @nyc-atlas/shared && npm run build -w @nyc-atlas/bff && npm run build -w @nyc-atlas/web",
     "build:shared": "npm run build -w @nyc-atlas/shared",
@@ -15,7 +21,9 @@
     "typecheck": "tsc -b packages/shared packages/bff packages/web",
     "verify:sources": "node scripts/verify-sources.mjs",
     "ingest": "npm run ingest -w @nyc-atlas/bff",
-    "test": "npm run test --workspaces --if-present"
+    "test": "npm run test --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present",
+    "rebuild": "npm run clean && npm run build"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
