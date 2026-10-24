@@ -136,13 +136,32 @@ export class CensusService {
         `&for=tract:*&in=state:${NYS_STATE_FIPS}%20county:${boro.countyFips}` +
         `&key=${key ?? ''}`;
 
-      const res = await fetch(url);
+      // The Census API signals key problems with a 302 to an HTML page rather
+      // than an error status. fetch follows that redirect, so a bad key arrives
+      // as a perfectly healthy 200 full of HTML — checking res.ok is not enough.
+      const res = await fetch(url, { redirect: 'follow' });
+
+      if (res.redirected || !res.url.startsWith(CENSUS_ACS_BASE)) {
+        if (res.url.includes('invalid_key')) {
+          throw new Error(
+            `Census API rejected the key as invalid. The key reached the API (the response ` +
+              `redirected to invalid_key.html rather than missing_key.html), so it is being ` +
+              `sent correctly — it is most likely not activated yet. Check the email from the ` +
+              `Census Bureau and click the activation link, then retry. Request a key at ` +
+              `${CENSUS_KEY_SIGNUP_URL}`,
+          );
+        }
+        if (res.url.includes('missing_key')) {
+          throw new Error(
+            `Census API received no key. Set CENSUS_API_KEY in .env (${CENSUS_KEY_SIGNUP_URL}).`,
+          );
+        }
+        throw new Error(`Census API redirected unexpectedly to ${res.url}`);
+      }
+
       if (!res.ok) {
         const body = await res.text();
-        throw new Error(
-          `Census API ${res.status} for ${boro.name}: ${body.slice(0, 200)}. ` +
-            `A 302 or 403 usually means the key is missing or invalid (${CENSUS_KEY_SIGNUP_URL}).`,
-        );
+        throw new Error(`Census API ${res.status} for ${boro.name}: ${body.slice(0, 200)}`);
       }
 
       const table = (await res.json()) as string[][];
