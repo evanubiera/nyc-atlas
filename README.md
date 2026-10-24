@@ -108,16 +108,29 @@ Full detail in [specs/002](specs/002-data-sources.md).
 
 ## Status
 
-Scaffold complete and verified end to end: the BFF loads all 262 NTAs from live
-NYC Open Data, the spatial join resolves correctly against 12 landmark fixtures
-including edge cases, geometry is simplified from 4.38 MB to 59 KB gzipped, and
-the web client renders the choropleth through GraphQL.
+The analysis pipeline is implemented and running on live data.
 
-The metrics pipeline — incident ingest, ACS aggregation, rate computation,
-empirical-Bayes smoothing and confounder adjustment — is specified but not yet
-implemented. The map currently renders a placeholder encoding, clearly marked in
-the source. See [specs/008](specs/008-task-breakdown.md) for the remaining work
-in dependency order.
+```bash
+npm install && npm run build
+npm run ingest       # ~17s: spatial join, institution unification, ACS
+npm run dev          # BFF :4000, web :3000
+```
+
+**Working:** ingest of 24,308 shootings and 279,384 complaints through the
+point-in-polygon join; 6,425 institutions unified across DCLA and FacDB with
+cross-source dedupe; empirical-Bayes smoothed rates with Poisson intervals;
+confounder-adjusted residuals; quintile comparison; partial correlation; and
+four map encodings (outcome, residual, bivariate, 3D extrusion).
+
+**Needs a Census key to be meaningful.** Without `CENSUS_API_KEY` the pipeline
+degrades to *area density* rather than per-resident rates. In that mode the
+association runs backwards — institutions and incidents both concentrate in
+dense neighborhoods — which is exactly the confounding the adjusted views exist
+to remove. Add the key and re-run `npm run ingest`.
+
+**Not yet built:** walkable-access exposure (currently falls back to per-capita),
+CDTA re-aggregation for the MAUP check, the scatter view, and CSV export. See
+[specs/008](specs/008-task-breakdown.md).
 
 ## Attribution
 
