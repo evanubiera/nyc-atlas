@@ -53,7 +53,7 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 ## Phase 4 — Client foundation
 - [x] 4.1 Redux store, RTK Query GraphQL baseQuery via `graphql-request`
 - [x] 4.2 Theme tokens, light/dark under both scopes, validated palette
-- [ ] 4.3 Filter slice + bidirectional URL serialization
+- [x] 4.3 Filter slice + bidirectional URL serialization
 - [x] 4.4 Generated types from the GraphQL schema, with a CI staleness check
 
 ## Phase 5 — Map

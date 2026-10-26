@@ -16,7 +16,8 @@ export interface FiltersState {
   extrude: boolean;
 }
 
-const initialState: FiltersState = {
+/** Also the baseline the URL encoder diffs against — see filtersUrl.ts. */
+export const DEFAULT_FILTERS: FiltersState = {
   category: 'SHOOTING',
   exposure: 'PER_CAPITA',
   institutionScope: 'STANDARD',
@@ -30,8 +31,12 @@ const initialState: FiltersState = {
 
 const filtersSlice = createSlice({
   name: 'filters',
-  initialState,
+  initialState: DEFAULT_FILTERS,
   reducers: {
+    /** Applies a whole state at once, as a decoded URL or a back button does. */
+    replaceFilters(_state, action: PayloadAction<FiltersState>) {
+      return action.payload;
+    },
     setCategory(state, action: PayloadAction<CrimeCategory>) {
       state.category = action.payload;
     },
@@ -63,6 +68,7 @@ const filtersSlice = createSlice({
 });
 
 export const {
+  replaceFilters,
   setCategory,
   setExposure,
   setInstitutionScope,

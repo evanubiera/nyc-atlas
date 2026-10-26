@@ -13,6 +13,7 @@ import { NeighborhoodTable } from './features/analysis/neighborhood-table/Neighb
 import { AtlasControls } from './app/AtlasControls.tsx';
 import { AtlasStatus } from './app/AtlasStatus.tsx';
 import { useAppSelector } from './store/hooks.js';
+import { useFilterUrlSync } from './features/filters/useFilterUrlSync.js';
 import type { MetricsInput } from './store/atlasApi.js';
 import {
   Body,
@@ -34,6 +35,8 @@ function preferredMode(): ThemeMode {
 export function App(): JSX.Element {
   const [mode, setMode] = useState<ThemeMode>(preferredMode);
   const filters = useAppSelector((state) => state.filters);
+
+  useFilterUrlSync();
 
   const input: MetricsInput = useMemo(
     () => ({
