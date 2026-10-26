@@ -1,7 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import RBush from 'rbush';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
-import simplify from '@turf/simplify';
 import centroid from '@turf/centroid';
 import area from '@turf/area';
 import type { Feature, MultiPolygon, Polygon } from 'geojson';
@@ -12,8 +11,16 @@ import {
   type Nta2020Code,
 } from '@nyc-atlas/shared';
 import { SocrataService } from '../socrata/socrata.service.js';
+import {
+  SIMPLIFY_TOLERANCE,
+  simplifyNtaCollection,
+  type SimplifiedCollection,
+} from './simplify-geometry.js';
 
 type NtaFeature = Feature<Polygon | MultiPolygon, NtaProperties>;
+
+/** Turf reports area in m²; every rate in this project is expressed per km². */
+const SQ_METRES_PER_SQ_KM = 1_000_000;
 
 interface NtaProperties {
   nta2020: string;
@@ -62,14 +69,16 @@ export class GeographyService implements OnModuleInit {
   private exactFeatures = new Map<Nta2020Code, NtaFeature>();
   private records = new Map<Nta2020Code, NtaRecord>();
   private index = new RBush<NtaIndexEntry>();
-  private simplifiedCollection: { type: 'FeatureCollection'; features: unknown[] } | null = null;
+  private simplifiedCollection: SimplifiedCollection | null = null;
   private loaded = false;
 
   constructor(private readonly socrata: SocrataService) {}
 
+  /**
+   * Failure here is non-fatal: the app still boots and reports degraded state
+   * rather than refusing to start when the upstream geography is unreachable.
+   */
   async onModuleInit(): Promise<void> {
-    // Non-fatal: the app should still boot (and report degraded state) if the
-    // upstream geography is unreachable.
     try {
       await this.load();
     } catch (err) {
@@ -100,8 +109,7 @@ export class GeographyService implements OnModuleInit {
       const bbox = computeBBox(feature);
       entries.push({ ...bbox, nta2020: code });
 
-      // Turf reports m²; NTA rates are expressed per km².
-      const landAreaSqKm = area(feature) / 1_000_000;
+      const landAreaSqKm = area(feature) / SQ_METRES_PER_SQ_KM;
       const c = centroid(feature).geometry.coordinates;
 
       this.records.set(code, {
@@ -166,30 +174,12 @@ export class GeographyService implements OnModuleInit {
 
   /**
    * Simplified geometry for the client. Raw NTA GeoJSON is 4.38 MB; the budget
-   * is under 600 KB gzipped (specs/001 NFR-3). Coordinates are quantised to 5
-   * decimal places (~1 m), far beyond what the view resolves.
+   * is under 600 KB gzipped (specs/001 NFR-3). The reduction itself lives in
+   * `simplify-geometry.ts`, so the CI budget check measures the same bytes.
    */
-  getSimplifiedGeoJson(tolerance = 0.00004): { type: 'FeatureCollection'; features: unknown[] } {
+  getSimplifiedGeoJson(tolerance = SIMPLIFY_TOLERANCE): SimplifiedCollection {
     if (this.simplifiedCollection) return this.simplifiedCollection;
-
-    const features = [...this.exactFeatures.values()].map((feature) => {
-      const clone = structuredClone(feature);
-      const reduced = simplify(clone, { tolerance, highQuality: false, mutate: true });
-      quantizeCoordinates(reduced.geometry, 5);
-      const props = feature.properties;
-      return {
-        type: 'Feature' as const,
-        geometry: reduced.geometry,
-        properties: {
-          nta2020: props.nta2020,
-          ntaname: props.ntaname,
-          boroname: props.boroname,
-          ntatype: props.ntatype,
-        },
-      };
-    });
-
-    this.simplifiedCollection = { type: 'FeatureCollection', features };
+    this.simplifiedCollection = simplifyNtaCollection(this.exactFeatures.values(), tolerance);
     return this.simplifiedCollection;
   }
 }
@@ -223,19 +213,6 @@ function forEachCoordinate(
       const lon = position[0];
       const lat = position[1];
       if (typeof lon === 'number' && typeof lat === 'number') visit(lon, lat);
-    }
-  }
-}
-
-function quantizeCoordinates(geometry: Polygon | MultiPolygon, decimals: number): void {
-  const factor = 10 ** decimals;
-  const round = (n: number): number => Math.round(n * factor) / factor;
-  const rings =
-    geometry.type === 'Polygon' ? geometry.coordinates : geometry.coordinates.flat();
-  for (const ring of rings) {
-    for (const position of ring) {
-      if (typeof position[0] === 'number') position[0] = round(position[0]);
-      if (typeof position[1] === 'number') position[1] = round(position[1]);
     }
   }
 }

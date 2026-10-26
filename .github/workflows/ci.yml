@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Typecheck, test and build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck the monorepo
+        run: npm run typecheck
+
+      # The BFF and shared packages run their tests from dist, so the build has
+      # to come first; the web package runs its .ts tests straight off Node.
+      - name: Build all packages
+        run: npm run build
+
+      - name: Run tests
+        run: npm test
+
+      # Geometry is derived from Socrata rather than committed, so this step
+      # reaches upstream; it skips rather than fails when that is unreachable.
+      - name: Check the geometry and bundle payload budgets
+        run: npm run check:budget
+        env:
+          SOCRATA_APP_TOKEN: ${{ secrets.SOCRATA_APP_TOKEN }}
+
+  sources:
+    name: Verify upstream data sources
+    runs-on: ubuntu-latest
+    # Hits live Socrata and Census endpoints, so it must not gate a merge on
+    # somebody else's outage — it reports, and the schedule catches drift.
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build:shared
+
+      - name: Verify every dataset id, field and assumption
+        run: npm run verify:sources
+        env:
+          SOCRATA_APP_TOKEN: ${{ secrets.SOCRATA_APP_TOKEN }}
