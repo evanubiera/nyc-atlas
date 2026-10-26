@@ -7,7 +7,8 @@
     "dev": "nest start --watch",
     "start": "node dist/main.js",
     "ingest": "node --enable-source-maps dist/ingest/run-ingest.js",
-    "clean": "rm -rf dist tsconfig.tsbuildinfo"
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "test": "test -f dist/common/rejection-log.test.js || (echo \"no compiled tests found \u2014 run npm run build first\" && exit 1) && node --test \"dist/**/*.test.js\""
   },
   "dependencies": {
     "@apollo/server": "^5.5.1",

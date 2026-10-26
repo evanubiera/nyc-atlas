@@ -104,11 +104,9 @@ export function resolveCoordinatePair(
 ): { lon: number; lat: number; wasSwapped: boolean } | null {
   if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
 
-  // Documented order: (latitude, longitude).
   if (isPlausibleLat(a) && isPlausibleLon(b)) {
     return { lon: b, lat: a, wasSwapped: false };
   }
-  // Transposed order: the value in `latitude` is really a longitude.
   if (isPlausibleLon(a) && isPlausibleLat(b)) {
     return { lon: a, lat: b, wasSwapped: true };
   }

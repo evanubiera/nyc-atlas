@@ -3,6 +3,9 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
+/** The ingest runs from packages/bff, so the repo root is two levels up. */
+const CACHE_DIR_FROM_BFF_PACKAGE = '../../data/cache';
+
 /**
  * Disk cache for ingest output.
  *
@@ -17,8 +20,7 @@ export class CacheService {
   private readonly root: string;
 
   constructor() {
-    // packages/bff/dist -> repo root
-    this.root = resolve(process.cwd(), '../../data/cache');
+    this.root = resolve(process.cwd(), CACHE_DIR_FROM_BFF_PACKAGE);
   }
 
   path(name: string): string {

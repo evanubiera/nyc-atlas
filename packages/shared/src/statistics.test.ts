@@ -10,6 +10,8 @@ import {
   standardize,
   quantileBreaks,
   quintileAnalysis,
+  pooledRate,
+  weightedMean,
   mean,
 } from './statistics.js';
 
@@ -197,4 +199,61 @@ test('quintile analysis ignores zero-population neighborhoods', () => {
   ]);
   const total = buckets.reduce((a, b) => a + b.neighborhoodCount, 0);
   assert.equal(total, 10, 'the zero-population area must be excluded');
+});
+
+test('pooled rate weights by the denominator, not by neighborhood', () => {
+  // One small neighborhood that is well served, one large one that is not.
+  // A mean of the two rates would read 5.5 per 10k; almost nobody lives that.
+  const observations = [
+    { value: 1, weight: 1_000 }, // 10 per 10k
+    { value: 9, weight: 90_000 }, // 1 per 10k
+  ];
+  const pooled = pooledRate(observations, 10_000);
+  assert.ok(pooled !== null);
+  assert.ok(Math.abs(pooled - 1.0989) < 0.001, `expected ~1.10, got ${pooled}`);
+
+  const meanOfRates = (10 + 1) / 2;
+  assert.ok(pooled < meanOfRates / 4, 'pooling must not drift toward the mean of rates');
+});
+
+test('pooled rate ignores observations with no weight rather than inflating', () => {
+  const withGhost = pooledRate(
+    [
+      { value: 5, weight: 10_000 },
+      { value: 50, weight: null },
+      { value: 50, weight: 0 },
+    ],
+    10_000,
+  );
+  assert.equal(withGhost, 5);
+});
+
+test('pooled rate is null when nothing carries weight', () => {
+  assert.equal(pooledRate([{ value: 3, weight: 0 }], 10_000), null);
+  assert.equal(pooledRate([], 10_000), null);
+});
+
+test('weighted mean follows the weight, not the count of observations', () => {
+  // Nine small neighborhoods at 40%, one large one at 90%.
+  const observations = [
+    ...Array.from({ length: 9 }, () => ({ value: 0.4, weight: 100 })),
+    { value: 0.9, weight: 9_000 },
+  ];
+  const weighted = weightedMean(observations);
+  assert.ok(weighted !== null);
+  assert.ok(weighted > 0.85, `expected the large group to dominate, got ${weighted}`);
+
+  const unweighted = (0.4 * 9 + 0.9) / 10;
+  assert.ok(weighted > unweighted + 0.3, 'weighting must differ from a plain mean here');
+});
+
+test('weighted mean skips rows missing a value and is null when all are', () => {
+  assert.equal(
+    weightedMean([
+      { value: null, weight: 5_000 },
+      { value: 2, weight: 1_000 },
+    ]),
+    2,
+  );
+  assert.equal(weightedMean([{ value: null, weight: 5_000 }]), null);
 });

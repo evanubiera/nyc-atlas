@@ -86,6 +86,26 @@ export const DIVERGING_BLUE_RED = {
   high: ['#f7d5d5', '#eda3a3', '#e34948', '#b82e2d', '#8a1f1e'],
 } as const;
 
+/**
+ * The two ends of the access-gap dumbbell: least-served fifth versus best-served
+ * fifth of neighborhoods. One hue, two shades — the form guidance for a paired
+ * before/after comparison, and it avoids spending a categorical slot on what is
+ * really one ordered measure.
+ *
+ * Each mode's steps are chosen against that mode's surface rather than flipped,
+ * and validated as an ordinal ramp:
+ *
+ *   light — #5598e7 at 2.91:1 vs surface, ΔL gap PASS, hue spread 3°  → PASS
+ *   dark  — #3987e5 at 4.79:1 vs surface, ΔL gap PASS, hue spread 2°  → PASS
+ *
+ * Both ends carry direct value labels regardless, so the shade never has to
+ * carry the number on its own.
+ */
+export const GAP_DUMBBELL = {
+  light: { least: '#5598e7', most: '#104281' },
+  dark: { least: '#3987e5', most: '#cde2fb' },
+} as const;
+
 /** Reserved status colors — never reused as a series hue. Mode-invariant. */
 export const STATUS = {
   good: '#0ca30c',

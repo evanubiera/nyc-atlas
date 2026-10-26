@@ -10,10 +10,16 @@ export interface DatasetDescriptor {
   readonly purpose: string;
   /** Fields the application depends on; verify:sources asserts their presence. */
   readonly requiredFields: readonly string[];
+  /**
+   * Socrata host, when it is not NYC Open Data. Food retail is licensed by the
+   * State, so the only citywide store inventory lives on data.ny.gov.
+   */
+  readonly domain?: string;
   readonly notes?: string;
 }
 
 export const SOCRATA_DOMAIN = 'data.cityofnewyork.us';
+export const NYS_SOCRATA_DOMAIN = 'data.ny.gov';
 
 export const DATASETS = {
   ntaGeography: {
@@ -58,6 +64,59 @@ export const DATASETS = {
     requiredFields: ['uid', 'facname', 'facdomain', 'facgroup', 'facsubgrp', 'factype', 'nta2020', 'latitude', 'longitude'],
     notes: 'LIBRARIES AND CULTURAL PROGRAMS = 2,647 records; 83% lumped into OTHER CULTURAL INSTITUTIONS, so use factype for granularity.',
   },
+  retailFoodStores: {
+    id: '9a8c-vfzj',
+    domain: NYS_SOCRATA_DOMAIN,
+    name: 'Retail Food Stores (NYS Dept. of Agriculture & Markets)',
+    purpose: 'Grocery access. 11,159 licensed stores in the five counties.',
+    requiredFields: ['license_number', 'county', 'entity_name', 'dba_name', 'square_footage', 'georeference'],
+    notes:
+      'Food retail is licensed by the State, so this is the only citywide store inventory — ' +
+      'it lives on a different Socrata host. square_footage is self-reported at licensing and ' +
+      'visibly noisy (a donut shop claims 20,000 sq ft). No NTA field; 227 NYC rows have no ' +
+      'georeference and cannot be placed.',
+  },
+  foodSafetyInspections: {
+    id: 'd6dy-3h7r',
+    domain: NYS_SOCRATA_DOMAIN,
+    name: 'Food Safety Inspections – Current Ratings (NYS Ag & Markets)',
+    purpose: 'Grocery quality. The inspection grade behind each food store.',
+    requiredFields: [
+      'county', 'trade_name', 'owner_name', 'street',
+      'inspection_grade', 'inspection_date', 'establishment_type', 'georeference',
+    ],
+    notes:
+      'One row per deficiency, not per establishment, so a badly graded store contributes many ' +
+      'rows and a clean one contributes a single row — counting rows would invert the measure. ' +
+      'Dedupe to the most recent inspection per owner+trade+street first. Spells the counties in ' +
+      'Title Case where the store licence file shouts them, hence upper() in the filter. ' +
+      '94,910 NYC rows resolve to 11,766 establishments; 99.3% carry a georeference.',
+  },
+  schoolQuality: {
+    id: 'dnpx-dfnc',
+    name: 'School Quality Reports Data',
+    purpose: 'School outcomes. Share of students at NY State Level 3-4 in ELA and Math.',
+    requiredFields: [
+      'school_year', 'report_type', 'dbn', 'school_name',
+      'metric_variable_name', 'metric_value', 'number_of_students',
+    ],
+    notes:
+      'Long format: one row per school per metric per year. Carries a DBN and no coordinates, ' +
+      'so it needs schoolLocations to reach a neighborhood.',
+  },
+  schoolLocations: {
+    id: 'wg9x-4ke6',
+    name: '2019 - 2020 School Locations',
+    purpose: 'DBN to coordinates, so school outcomes can be placed in a neighborhood.',
+    requiredFields: [
+      'system_code', 'location_name', 'latitude', 'longitude',
+      'location_category_description', 'grades_final_text', 'status_descriptions',
+    ],
+    notes:
+      'system_code is the DBN. Its `nta` field is a 2010 code and is ignored — coordinates are ' +
+      'spatially joined to 2020 NTAs instead. 2019-20 is the newest published vintage; 97.4% of ' +
+      'schools with 2024 quality data match, the rest being mostly post-2020 charters.',
+  },
   tractToNta: {
     id: 'hm78-6dwm',
     name: '2020 Census Tracts to 2020 NTAs and CDTAs Equivalency',
@@ -100,3 +159,75 @@ export const ACS_VARIABLES = {
 } as const;
 
 export const CENSUS_KEY_SIGNUP_URL = 'https://api.census.gov/data/key_signup.html';
+
+// --- Amenity access definitions ---------------------------------------------
+
+/**
+ * Floor area at which a food store is treated as a full-service supermarket
+ * rather than a corner store.
+ *
+ * 10,000 sq ft is the conventional line in NYC food-access work (it is the
+ * threshold the city's own FRESH program and USDA food-desert analyses use).
+ * It is a proxy: floor area is a decent predictor of fresh produce, dairy and
+ * meat depth, not a measurement of it.
+ */
+export const SUPERMARKET_MIN_SQFT = 10_000;
+
+/** NYS county names for the five boroughs, as the food-store licence file spells them. */
+export const NYC_COUNTY_NAMES: readonly string[] = [
+  'NEW YORK',
+  'KINGS',
+  'QUEENS',
+  'BRONX',
+  'RICHMOND',
+];
+
+/**
+ * FacDB subgroup counted as healthcare access. Deliberately narrow: this
+ * subgroup is where care is actually delivered (hospitals, diagnostic and
+ * treatment centers, extension and child-health clinics). The sibling
+ * 'OTHER HEALTH CARE' subgroup is mostly adult homes, home-care agencies and
+ * City Council demonstration grants — real services, but not places a resident
+ * can walk into for care, so counting them would overstate access.
+ */
+export const FACDB_HEALTHCARE_SUBGROUP = 'HOSPITALS AND CLINICS';
+
+/**
+ * Residential programs that FacDB files under HOSPITALS AND CLINICS. They are
+ * housing, not care access, and are excluded from the healthcare count.
+ */
+export const FACDB_HEALTHCARE_EXCLUDED_TYPES: readonly string[] = [
+  'ENRICHED HOUSING PROGRAM',
+  'HOSPITAL RESIDENTIAL STRUCTURE',
+];
+
+/** School-quality metrics pulled from the School Quality Reports. */
+export const SCHOOL_PROFICIENCY_METRICS = {
+  ela: 'prof_pct_ela_all',
+  math: 'prof_pct_mth_all',
+} as const;
+
+/**
+ * Newest School Quality Reports year carrying elementary/middle proficiency.
+ * Verified available 2026-10-24.
+ */
+export const SCHOOL_QUALITY_YEAR = 2024;
+
+/** Report type carrying ELA/Math proficiency: elementary and middle schools. */
+export const SCHOOL_QUALITY_REPORT_TYPE = 'EMS';
+
+/**
+ * Food-store inspection grades, best first.
+ *
+ * This is a **sanitation** grade from the State's retail food inspectors. It
+ * says whether a store is clean and storing food safely. It says nothing about
+ * whether the produce is fresh, the prices are fair, or the shelves carry
+ * anything green — which is what "a good grocery store" usually means. It is
+ * the only store-level rating published citywide, and it is labelled for what
+ * it measures everywhere it appears.
+ */
+export const FOOD_GRADES = ['A', 'B', 'C'] as const;
+export type FoodGrade = (typeof FOOD_GRADES)[number];
+
+/** The grade treated as "passed cleanly". 85.7% of NYC stores hold it. */
+export const FOOD_GRADE_PASS: FoodGrade = 'A';

@@ -125,102 +125,117 @@ export const CRIME_CATEGORY_META: Readonly<Record<CrimeCategory, CrimeCategoryMe
 };
 
 /**
- * Exact-match map from raw `ofns_desc` to analysis category.
- * All 75 observed values across `5uac-w243` and `qgea-i56i` (verified 2026-10-24).
+ * The raw `ofns_desc` labels that belong to each analysis category.
+ *
+ * Grouped by category rather than listed flat: the upstream labels are
+ * inconsistently truncated between the current and historic complaint files, so
+ * the same offense arrives under several spellings and they need to sit beside
+ * each other to be reviewed. All 74 observed values across `5uac-w243` and
+ * `qgea-i56i` are covered (verified 2026-10-24); `verify:sources` fails if a
+ * new one appears.
  */
-export const OFFENSE_TO_CATEGORY: Readonly<Record<string, CrimeCategory>> = {
-  // --- Violence against a person -------------------------------------------
-  'MURDER & NON-NEGL. MANSLAUGHTER': 'VIOLENT_PERSON',
-  'HOMICIDE-NEGLIGENT,UNCLASSIFIE': 'VIOLENT_PERSON',
-  'HOMICIDE-NEGLIGENT-VEHICLE': 'VIOLENT_PERSON',
-  RAPE: 'VIOLENT_PERSON',
-  'FELONY ASSAULT': 'VIOLENT_PERSON',
-  'ASSAULT 3 & RELATED OFFENSES': 'VIOLENT_PERSON',
-  'SEX CRIMES': 'VIOLENT_PERSON',
-  'FELONY SEX CRIMES': 'VIOLENT_PERSON',
-  'OFFENSES AGAINST THE PERSON': 'VIOLENT_PERSON',
-  KIDNAPPING: 'VIOLENT_PERSON',
-  'KIDNAPPING & RELATED OFFENSES': 'VIOLENT_PERSON',
-  'KIDNAPPING AND RELATED OFFENSES': 'VIOLENT_PERSON',
-  'OFFENSES RELATED TO CHILDREN': 'VIOLENT_PERSON',
-  'CHILD ABANDONMENT/NON SUPPORT': 'VIOLENT_PERSON',
-  'CHILD ABANDONMENT/NON SUPPORT 1': 'VIOLENT_PERSON',
-  'ENDAN WELFARE INCOMP': 'VIOLENT_PERSON',
-  ABORTION: 'VIOLENT_PERSON',
+const OFFENSE_LABELS_BY_CATEGORY = {
+  VIOLENT_PERSON: [
+    'MURDER & NON-NEGL. MANSLAUGHTER',
+    'HOMICIDE-NEGLIGENT,UNCLASSIFIE',
+    'HOMICIDE-NEGLIGENT-VEHICLE',
+    'RAPE',
+    'FELONY ASSAULT',
+    'ASSAULT 3 & RELATED OFFENSES',
+    'SEX CRIMES',
+    'FELONY SEX CRIMES',
+    'OFFENSES AGAINST THE PERSON',
+    'KIDNAPPING',
+    'KIDNAPPING & RELATED OFFENSES',
+    'KIDNAPPING AND RELATED OFFENSES',
+    'OFFENSES RELATED TO CHILDREN',
+    'CHILD ABANDONMENT/NON SUPPORT',
+    'CHILD ABANDONMENT/NON SUPPORT 1',
+    'ENDAN WELFARE INCOMP',
+    'ABORTION',
+  ],
+  VIOLENT_PROPERTY: [
+    'ROBBERY',
+    'BURGLARY',
+  ],
+  PROPERTY: [
+    'PETIT LARCENY',
+    'PETIT LARCENY OF MOTOR VEHICLE',
+    'GRAND LARCENY',
+    'GRAND LARCENY OF MOTOR VEHICLE',
+    'OTHER OFFENSES RELATED TO THEF',
+    'OTHER OFFENSES RELATED TO THEFT',
+    'CRIMINAL MISCHIEF & RELATED OF',
+    'ARSON',
+    'POSSESSION OF STOLEN PROPERTY',
+    'UNAUTHORIZED USE OF A VEHICLE',
+    'BURGLAR\'S TOOLS',
+    'JOSTLING',
+  ],
+  FRAUD: [
+    'FORGERY',
+    'FRAUDS',
+    'THEFT-FRAUD',
+    'OFFENSES INVOLVING FRAUD',
+    'FRAUDULENT ACCOSTING',
+    'THEFT OF SERVICES',
+  ],
+  WEAPONS: [
+    'DANGEROUS WEAPONS',
+    'UNLAWFUL POSS. WEAP. ON SCHOOL',
+  ],
+  DRUGS: [
+    'DANGEROUS DRUGS',
+    'CANNABIS RELATED OFFENSES',
+    'UNDER THE INFLUENCE OF DRUGS',
+    'LOITERING FOR DRUG PURPOSES',
+  ],
+  DISORDER: [
+    'HARRASSMENT 2',
+    'OFF. AGNST PUB ORD SENSBLTY &',
+    'CRIMINAL TRESPASS',
+    'DISORDERLY CONDUCT',
+    'ALCOHOLIC BEVERAGE CONTROL LAW',
+    'LOITERING',
+    'LOITERING/DEVIATE SEX',
+    'LOITERING/GAMBLING (CARDS, DIC',
+    'GAMBLING',
+    'PROSTITUTION & RELATED OFFENSES',
+    'DISRUPTION OF A RELIGIOUS SERV',
+    'FORTUNE TELLING',
+    'OFFENSES AGAINST PUBLIC SAFETY',
+    'OFFENSES AGAINST MARRIAGE UNCL',
+  ],
+  TRAFFIC: [
+    'VEHICLE AND TRAFFIC LAWS',
+    'INTOXICATED & IMPAIRED DRIVING',
+    'INTOXICATED/IMPAIRED DRIVING',
+    'OTHER TRAFFIC INFRACTION',
+  ],
+  ADMINISTRATIVE: [
+    'ADMINISTRATIVE CODE',
+    'ADMINISTRATIVE CODES',
+    'MISCELLANEOUS PENAL LAW',
+    'OFFENSES AGAINST PUBLIC ADMINI',
+    'OTHER STATE LAWS',
+    'OTHER STATE LAWS (NON PENAL LA',
+    'OTHER STATE LAWS (NON PENAL LAW)',
+    'NYS LAWS-UNCLASSIFIED FELONY',
+    'NYS LAWS-UNCLASSIFIED VIOLATION',
+    'NEW YORK CITY HEALTH CODE',
+    'AGRICULTURE & MRKTS LAW-UNCLASSIFIED',
+    'ANTICIPATORY OFFENSES',
+    'ESCAPE 3',
+  ],
+} as const satisfies Partial<Record<CrimeCategory, readonly string[]>>;
 
-  // --- Robbery & burglary ---------------------------------------------------
-  ROBBERY: 'VIOLENT_PROPERTY',
-  BURGLARY: 'VIOLENT_PROPERTY',
-
-  // --- Property -------------------------------------------------------------
-  'PETIT LARCENY': 'PROPERTY',
-  'PETIT LARCENY OF MOTOR VEHICLE': 'PROPERTY',
-  'GRAND LARCENY': 'PROPERTY',
-  'GRAND LARCENY OF MOTOR VEHICLE': 'PROPERTY',
-  'OTHER OFFENSES RELATED TO THEF': 'PROPERTY',
-  'OTHER OFFENSES RELATED TO THEFT': 'PROPERTY',
-  'CRIMINAL MISCHIEF & RELATED OF': 'PROPERTY',
-  ARSON: 'PROPERTY',
-  'POSSESSION OF STOLEN PROPERTY': 'PROPERTY',
-  'UNAUTHORIZED USE OF A VEHICLE': 'PROPERTY',
-  "BURGLAR'S TOOLS": 'PROPERTY',
-  JOSTLING: 'PROPERTY',
-
-  // --- Fraud ----------------------------------------------------------------
-  FORGERY: 'FRAUD',
-  FRAUDS: 'FRAUD',
-  'THEFT-FRAUD': 'FRAUD',
-  'OFFENSES INVOLVING FRAUD': 'FRAUD',
-  'FRAUDULENT ACCOSTING': 'FRAUD',
-  'THEFT OF SERVICES': 'FRAUD',
-
-  // --- Weapons --------------------------------------------------------------
-  'DANGEROUS WEAPONS': 'WEAPONS',
-  'UNLAWFUL POSS. WEAP. ON SCHOOL': 'WEAPONS',
-
-  // --- Drugs ----------------------------------------------------------------
-  'DANGEROUS DRUGS': 'DRUGS',
-  'CANNABIS RELATED OFFENSES': 'DRUGS',
-  'UNDER THE INFLUENCE OF DRUGS': 'DRUGS',
-  'LOITERING FOR DRUG PURPOSES': 'DRUGS',
-
-  // --- Disorder / quality of life ------------------------------------------
-  'HARRASSMENT 2': 'DISORDER',
-  'OFF. AGNST PUB ORD SENSBLTY &': 'DISORDER',
-  'CRIMINAL TRESPASS': 'DISORDER',
-  'DISORDERLY CONDUCT': 'DISORDER',
-  'ALCOHOLIC BEVERAGE CONTROL LAW': 'DISORDER',
-  LOITERING: 'DISORDER',
-  'LOITERING/DEVIATE SEX': 'DISORDER',
-  'LOITERING/GAMBLING (CARDS, DIC': 'DISORDER',
-  GAMBLING: 'DISORDER',
-  'PROSTITUTION & RELATED OFFENSES': 'DISORDER',
-  'DISRUPTION OF A RELIGIOUS SERV': 'DISORDER',
-  'FORTUNE TELLING': 'DISORDER',
-  'OFFENSES AGAINST PUBLIC SAFETY': 'DISORDER',
-  'OFFENSES AGAINST MARRIAGE UNCL': 'DISORDER',
-
-  // --- Traffic --------------------------------------------------------------
-  'VEHICLE AND TRAFFIC LAWS': 'TRAFFIC',
-  'INTOXICATED & IMPAIRED DRIVING': 'TRAFFIC',
-  'INTOXICATED/IMPAIRED DRIVING': 'TRAFFIC',
-  'OTHER TRAFFIC INFRACTION': 'TRAFFIC',
-
-  // --- Administrative / unclassified ---------------------------------------
-  'ADMINISTRATIVE CODE': 'ADMINISTRATIVE',
-  'ADMINISTRATIVE CODES': 'ADMINISTRATIVE',
-  'MISCELLANEOUS PENAL LAW': 'ADMINISTRATIVE',
-  'OFFENSES AGAINST PUBLIC ADMINI': 'ADMINISTRATIVE',
-  'OTHER STATE LAWS': 'ADMINISTRATIVE',
-  'OTHER STATE LAWS (NON PENAL LA': 'ADMINISTRATIVE',
-  'OTHER STATE LAWS (NON PENAL LAW)': 'ADMINISTRATIVE',
-  'NYS LAWS-UNCLASSIFIED FELONY': 'ADMINISTRATIVE',
-  'NYS LAWS-UNCLASSIFIED VIOLATION': 'ADMINISTRATIVE',
-  'NEW YORK CITY HEALTH CODE': 'ADMINISTRATIVE',
-  'AGRICULTURE & MRKTS LAW-UNCLASSIFIED': 'ADMINISTRATIVE',
-  'ANTICIPATORY OFFENSES': 'ADMINISTRATIVE',
-  'ESCAPE 3': 'ADMINISTRATIVE',
-};
+/** Exact-match lookup from a raw `ofns_desc` to its analysis category. */
+export const OFFENSE_TO_CATEGORY: Readonly<Record<string, CrimeCategory>> =
+  Object.fromEntries(
+    Object.entries(OFFENSE_LABELS_BY_CATEGORY).flatMap(([category, labels]) =>
+      labels.map((label) => [label, category as CrimeCategory]),
+    ),
+  );
 
 /**
  * String values that mean "missing" in NYPD exports despite not being SQL nulls.

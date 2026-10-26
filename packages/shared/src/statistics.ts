@@ -19,7 +19,6 @@ export function poissonCountInterval(count: number): readonly [number, number] {
   if (count < 0 || !Number.isFinite(count)) return [0, 0];
   const z = 1.959964; // 97.5th percentile of the standard normal
 
-  // Byar's lower bound is undefined at zero; the exact lower bound is 0.
   const lower =
     count === 0
       ? 0
@@ -73,11 +72,9 @@ export function empiricalBayesSmooth(observations: readonly RateObservation[]): 
   const totalCount = usable.reduce((a, o) => a + o.count, 0);
   const totalPop = usable.reduce((a, o) => a + o.population, 0);
 
-  // Group mean rate (per person).
   const m = totalCount / totalPop;
   const meanPop = totalPop / usable.length;
 
-  // Between-area variance of the underlying rates.
   let weightedSquares = 0;
   for (const o of usable) {
     const r = o.count / o.population;
@@ -91,8 +88,7 @@ export function empiricalBayesSmooth(observations: readonly RateObservation[]): 
     if (o.population <= 0) {
       return { key: o.key, rawRatePer100k: raw, smoothedRatePer100k: raw, weight: 0 };
     }
-    // Shrink more where the local estimate is noisier (small population).
-    const w = s2 === 0 ? 0 : s2 / (s2 + m / o.population);
+      const w = s2 === 0 ? 0 : s2 / (s2 + m / o.population);
     const smoothed = (w * (o.count / o.population) + (1 - w) * m) * 100_000;
     return { key: o.key, rawRatePer100k: raw, smoothedRatePer100k: smoothed, weight: w };
   });
@@ -170,16 +166,18 @@ export interface OlsResult {
  * numerical shortcomings of normal equations versus QR do not bite. Columns are
  * standardized by the caller, which keeps the system well conditioned.
  */
+/**
+ * Least squares via the normal equations (X'X)b = X'y, with an intercept column
+ * prepended to the design matrix.
+ */
 export function ols(X: readonly (readonly number[])[], y: readonly number[]): OlsResult {
   const n = X.length;
   if (n === 0) return { coefficients: [], residuals: [], fitted: [], rSquared: 0, n: 0 };
   const k = (X[0] as readonly number[]).length;
 
-  // Design matrix with an intercept column.
   const design: number[][] = X.map((row) => [1, ...row]);
   const p = k + 1;
 
-  // Normal equations: (X'X) b = X'y
   const xtx: number[][] = Array.from({ length: p }, () => new Array<number>(p).fill(0));
   const xty: number[] = new Array<number>(p).fill(0);
 
@@ -296,6 +294,11 @@ export interface QuintileBucketResult {
  * per-neighborhood rates: averaging rates would weight a 2,000-person NTA the
  * same as a 90,000-person one and let small-area noise drive the result.
  */
+/**
+ * Buckets by rank rather than by value, which keeps the five groups equal in
+ * size even though the exposure distribution is heavily skewed — many
+ * neighborhoods have no institutions at all.
+ */
 export function quintileAnalysis(rows: readonly QuintileInput[]): QuintileBucketResult[] {
   const usable = rows.filter((r) => r.population > 0 && Number.isFinite(r.exposure));
   if (usable.length === 0) return [];
@@ -304,8 +307,6 @@ export function quintileAnalysis(rows: readonly QuintileInput[]): QuintileBucket
   const buckets: QuintileInput[][] = [[], [], [], [], []];
 
   sorted.forEach((row, i) => {
-    // Rank-based assignment keeps bucket sizes equal even when the exposure
-    // distribution is heavily skewed, which it is (many NTAs have zero).
     const idx = Math.min(4, Math.floor((i * 5) / sorted.length));
     (buckets[idx] as QuintileInput[]).push(row);
   });
@@ -330,4 +331,59 @@ export function quintileAnalysis(rows: readonly QuintileInput[]): QuintileBucket
       totalCount,
     };
   });
+}
+
+/** One neighborhood's contribution to a pooled group figure. */
+export interface WeightedObservation {
+  /** The quantity being pooled: a count, or a value to be averaged. */
+  readonly value: number | null;
+  /** Residents, students, or whatever the measure is "per". */
+  readonly weight: number | null;
+}
+
+/**
+ * Pools a count across a group and expresses it per `per` units of weight.
+ *
+ * This is deliberately not a mean of per-neighborhood rates. Averaging rates
+ * gives a 3,000-person neighborhood with one supermarket the same say as a
+ * 90,000-person one with eight, which describes neighborhoods rather than
+ * people. Pooling the numerator and denominator gives the rate an actual
+ * resident of the group experiences.
+ *
+ * Observations with no weight contribute nothing — including their counts,
+ * which would otherwise inflate the numerator against a denominator that never
+ * grew.
+ */
+export function pooledRate(
+  observations: readonly WeightedObservation[],
+  per: number,
+): number | null {
+  let total = 0;
+  let weight = 0;
+  for (const o of observations) {
+    if (o.value === null || o.weight === null || o.weight <= 0) continue;
+    total += o.value;
+    weight += o.weight;
+  }
+  if (weight <= 0) return null;
+  return (total / weight) * per;
+}
+
+/**
+ * Weighted mean, skipping observations missing either part.
+ *
+ * Used where the quantity is already a rate or a median and cannot simply be
+ * summed — income and poverty weighted by population, proficiency weighted by
+ * students tested.
+ */
+export function weightedMean(observations: readonly WeightedObservation[]): number | null {
+  let weighted = 0;
+  let weight = 0;
+  for (const o of observations) {
+    if (o.value === null || o.weight === null || o.weight <= 0) continue;
+    weighted += o.value * o.weight;
+    weight += o.weight;
+  }
+  if (weight <= 0) return null;
+  return weighted / weight;
 }

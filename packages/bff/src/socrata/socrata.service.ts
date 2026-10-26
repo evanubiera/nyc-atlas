@@ -9,10 +9,21 @@ export interface SoqlQuery {
   order?: string;
   limit?: number;
   offset?: number;
+  /**
+   * Socrata host, when the dataset does not live on NYC Open Data. Food retail
+   * is State-licensed, so its inventory is on data.ny.gov; the API is identical.
+   * Pass `DATASETS.x.domain` straight through.
+   */
+  domain?: string;
 }
 
 /** Socrata caps a single page at 50,000 rows. */
 export const SOCRATA_MAX_PAGE = 50_000;
+
+/** Worth retrying. Any other 4xx is a bug in our query, not a blip. */
+function isTransientStatus(status: number): boolean {
+  return status === 429 || status >= 500;
+}
 
 interface RetryOptions {
   attempts: number;
@@ -39,7 +50,8 @@ export class SocrataService {
     if (query.order) params.set('$order', query.order);
     if (query.limit !== undefined) params.set('$limit', String(query.limit));
     if (query.offset !== undefined) params.set('$offset', String(query.offset));
-    return `https://${SOCRATA_DOMAIN}/resource/${datasetId}.${format}?${params.toString()}`;
+    const domain = query.domain ?? SOCRATA_DOMAIN;
+    return `https://${domain}/resource/${datasetId}.${format}?${params.toString()}`;
   }
 
   private async fetchWithRetry(url: string): Promise<Response> {
@@ -47,8 +59,7 @@ export class SocrataService {
     for (let attempt = 1; attempt <= this.retry.attempts; attempt += 1) {
       try {
         const res = await fetch(url, { headers: this.headers() });
-        // 429 and 5xx are transient; 4xx otherwise is a bug in our query.
-        if (res.status === 429 || res.status >= 500) {
+        if (isTransientStatus(res.status)) {
           throw new Error(`HTTP ${res.status}`);
         }
         if (!res.ok) {
@@ -103,8 +114,8 @@ export class SocrataService {
     return Number(rows[0]?.n ?? 0);
   }
 
-  async metadata(datasetId: string): Promise<SocrataMetadata> {
-    const url = `https://${SOCRATA_DOMAIN}/api/views/${datasetId}.json`;
+  async metadata(datasetId: string, domain: string = SOCRATA_DOMAIN): Promise<SocrataMetadata> {
+    const url = `https://${domain}/api/views/${datasetId}.json`;
     const res = await this.fetchWithRetry(url);
     return (await res.json()) as SocrataMetadata;
   }
