@@ -34,4 +34,32 @@ export class AppConfig {
   get isProduction(): boolean {
     return this.config.get('NODE_ENV') === 'production';
   }
+
+  /**
+   * Where the ingest caches live.
+   *
+   * Defaults to the repo layout for local work. In a container the path is
+   * whatever the image puts it at, and resolving it from the working directory
+   * would make the process depend on how it was launched.
+   */
+  get cacheDir(): string | null {
+    return this.config.get<string>('CACHE_DIR')?.trim() || null;
+  }
+
+  /**
+   * Origins allowed to call the API.
+   *
+   * Comma-separated. Empty means reflect the caller's origin, which is
+   * convenient locally and wrong in production — so production without an
+   * allowlist is refused at startup rather than served permissively.
+   */
+  get corsOrigins(): string[] {
+    const raw = this.config.get<string>('CORS_ORIGINS')?.trim();
+    return raw ? raw.split(',').map((origin) => origin.trim()).filter(Boolean) : [];
+  }
+
+  /** Stamped into the image by CI; surfaced on /healthz so a deploy is identifiable. */
+  get revision(): string {
+    return this.config.get<string>('GIT_SHA')?.trim() || 'unknown';
+  }
 }

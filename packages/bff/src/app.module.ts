@@ -10,6 +10,7 @@ import { AtlasResolver } from './graphql/atlas.resolver.js';
 import { ProvenanceService } from './graphql/provenance.service.js';
 import { MetricsResolver } from './graphql/metrics.resolver.js';
 import { MetricsModule } from './metrics/metrics.module.js';
+import { HealthModule } from './health/health.module.js';
 
 /**
  * Anchored to this file rather than to `process.cwd()`.
@@ -35,6 +36,7 @@ const SCHEMA_PATH = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'sche
     SocrataModule,
     GeographyModule,
     MetricsModule,
+    HealthModule,
   ],
   providers: [AtlasResolver, MetricsResolver, ProvenanceService],
 })

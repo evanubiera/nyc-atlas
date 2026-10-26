@@ -1,9 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { AppConfig } from '../config/configuration.js';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-/** The ingest runs from packages/bff, so the repo root is two levels up. */
+/** Relative to the package root: the repo's data directory, two levels up. */
 const CACHE_DIR_FROM_BFF_PACKAGE = '../../data/cache';
 
 /**
@@ -19,8 +21,13 @@ export class CacheService {
   private readonly logger = new Logger(CacheService.name);
   private readonly root: string;
 
-  constructor() {
-    this.root = resolve(process.cwd(), CACHE_DIR_FROM_BFF_PACKAGE);
+  constructor(private readonly config: AppConfig) {
+    // CACHE_DIR wins; otherwise fall back to the repo layout, anchored to this
+    // module rather than the working directory so it does not depend on how
+    // the process was started.
+    this.root =
+      this.config.cacheDir ??
+      resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', CACHE_DIR_FROM_BFF_PACKAGE);
   }
 
   path(name: string): string {
