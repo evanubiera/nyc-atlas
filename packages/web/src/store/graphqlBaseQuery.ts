@@ -15,9 +15,6 @@ function resolveEndpoint(): string {
   const configured = process.env.GRAPHQL_ENDPOINT;
   if (configured && /^https?:\/\//.test(configured)) return configured;
 
-  // graphql-request requires an absolute URL; a bare '/graphql' throws before
-  // any request is issued. Resolve against the current origin so the webpack
-  // dev-server proxy still handles it.
   const path = configured ?? '/graphql';
   return typeof window !== 'undefined' ? new URL(path, window.location.origin).toString() : path;
 }

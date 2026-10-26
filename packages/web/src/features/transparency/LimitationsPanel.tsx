@@ -1,6 +1,50 @@
 import { useState } from 'react';
 import styled from 'styled-components';
 import { useCapabilitiesQuery, useProvenanceQuery } from '../../store/atlasApi.js';
+import { KNOWN_LIMITATIONS } from './limitations.tsx';
+
+function LimitationDetail(): JSX.Element {
+  const { data: capabilities } = useCapabilitiesQuery();
+  const { data: provenance } = useProvenanceQuery();
+
+  return (
+    <Detail>
+      <h4>Known limitations</h4>
+      <ul>
+        {KNOWN_LIMITATIONS.map((limitation) => (
+          <li key={limitation.id}>
+            <strong>{limitation.heading}</strong> {limitation.body}
+          </li>
+        ))}
+      </ul>
+
+      {capabilities && capabilities.degradedFeatures.length > 0 && (
+        <>
+          <h4>Currently degraded</h4>
+          <ul>
+            {capabilities.degradedFeatures.map((feature) => (
+              <li key={feature}>{feature}</li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {provenance && (
+        <>
+          <h4>Sources</h4>
+          <ul>
+            {provenance.datasets.map((dataset) => (
+              <li key={dataset.id}>
+                <code>{dataset.id}</code> — {dataset.name}
+              </li>
+            ))}
+          </ul>
+          <Attribution>{provenance.attribution}</Attribution>
+        </>
+      )}
+    </Detail>
+  );
+}
 
 /**
  * Required by specs/001 FR-4.1 and specs/007 §9. The association-not-causation
@@ -9,8 +53,6 @@ import { useCapabilitiesQuery, useProvenanceQuery } from '../../store/atlasApi.j
  */
 export function LimitationsPanel(): JSX.Element {
   const [open, setOpen] = useState(false);
-  const { data: caps } = useCapabilitiesQuery();
-  const { data: prov } = useProvenanceQuery();
 
   return (
     <Panel>
@@ -20,73 +62,12 @@ export function LimitationsPanel(): JSX.Element {
           This atlas shows <strong>statistical association, not causation</strong>. Cultural
           institutions tend to locate in already-safer, wealthier areas.
         </span>
-        <Toggle onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+        <Toggle onClick={() => setOpen((shown) => !shown)} aria-expanded={open}>
           {open ? 'Hide detail' : 'Why this matters'}
         </Toggle>
       </Always>
 
-      {open && (
-        <Detail>
-          <h4>Known limitations</h4>
-          <ul>
-            <li>
-              <strong>Reverse causality.</strong> Institutions follow safety and property values
-              at least as much as they might produce them. Cross-sectional data cannot separate
-              the directions.
-            </li>
-            <li>
-              <strong>Reporting bias.</strong> Complaint counts measure <em>reported</em> crime.
-              Reporting falls where institutional trust is lowest — often the same neighborhoods
-              with the least cultural investment. Shooting data is used as the primary outcome
-              because it is far less sensitive to this.
-            </li>
-            <li>
-              <strong>Enforcement-driven categories.</strong> Drug, disorder, traffic and
-              administrative counts reflect police deployment as much as behaviour, so they are
-              off by default.
-            </li>
-            <li>
-              <strong>Coverage bias in the exposure.</strong> The DCLA directory lists largely
-              city-funded organizations and under-counts informal cultural space — church
-              basements, social clubs, studios — most severely in low-income neighborhoods.
-            </li>
-            <li>
-              <strong>Residual confounding is certain.</strong> Redlining and historical
-              disinvestment are common causes of both low cultural investment and present-day
-              violence, and are not measured here.
-            </li>
-            <li>
-              <strong>MAUP.</strong> Results can change with the choice of geography; a
-              Community-District view is provided as a sensitivity check.
-            </li>
-          </ul>
-
-          {caps && caps.degradedFeatures.length > 0 && (
-            <>
-              <h4>Currently degraded</h4>
-              <ul>
-                {caps.degradedFeatures.map((d) => (
-                  <li key={d}>{d}</li>
-                ))}
-              </ul>
-            </>
-          )}
-
-          {prov && (
-            <>
-              <h4>Sources</h4>
-              <ul>
-                {prov.datasets.map((d) => (
-                  <li key={d.id}>
-                    <code>{d.id}</code> — {d.name}
-                  </li>
-                ))}
-              </ul>
-              <Attribution>{prov.attribution}</Attribution>
-            </>
-          )}
-        </Detail>
-      )}
+      {open && <LimitationDetail />}
     </Panel>
   );
 }

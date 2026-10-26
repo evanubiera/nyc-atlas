@@ -1,7 +1,64 @@
-import styled, { useTheme } from 'styled-components';
+import styled from 'styled-components';
 import { useQuintilesQuery, type MetricsInput } from '../../store/atlasApi.js';
 
 const LABELS = ['Q1 — fewest institutions', 'Q2', 'Q3', 'Q4', 'Q5 — most institutions'];
+
+interface QuintileBarProps {
+  label: string;
+  rate: number;
+  interval: (number | undefined)[];
+  max: number;
+  neighborhoodCount: number;
+  totalCount: number;
+  rateMode: boolean;
+}
+
+function QuintileBar({
+  label,
+  rate,
+  interval,
+  max,
+  neighborhoodCount,
+  totalCount,
+  rateMode,
+}: QuintileBarProps): JSX.Element {
+  const barPercent = (rate / max) * 100;
+  const lowPercent = ((interval[0] ?? 0) / max) * 100;
+  const highPercent = ((interval[1] ?? 0) / max) * 100;
+
+  return (
+    <Row>
+      <RowLabel>{label}</RowLabel>
+      <Track>
+        <Bar style={{ width: `${barPercent}%` }} />
+        <Whisker
+          style={{
+            left: `${lowPercent}%`,
+            width: `${Math.max(highPercent - lowPercent, 0.4)}%`,
+          }}
+        />
+      </Track>
+      <Value>
+        {rate.toFixed(rateMode ? 1 : 0)}
+        <small>
+          {neighborhoodCount} NTAs · {totalCount.toLocaleString()} events
+        </small>
+      </Value>
+    </Row>
+  );
+}
+
+function DensityModeWarning(): JSX.Element {
+  return (
+    <Warn>
+      Showing <strong>area density</strong>, not per-resident rates — no Census key
+      configured. Institutions and incidents both concentrate in dense neighborhoods, so
+      this view is confounded by density and may run backwards. Add{' '}
+      <code>CENSUS_API_KEY</code> and re-run ingest for per-capita rates and confounder
+      adjustment.
+    </Warn>
+  );
+}
 
 /**
  * The headline view: neighborhoods binned by cultural-institution exposure,
@@ -12,7 +69,6 @@ const LABELS = ['Q1 — fewest institutions', 'Q2', 'Q3', 'Q4', 'Q5 — most ins
  * five and the number is the point.
  */
 export function QuintileChart({ input }: { input: MetricsInput }): JSX.Element {
-  const theme = useTheme();
   const { data, isFetching, error } = useQuintilesQuery(input);
 
   if (error) return <Note role="alert">Could not load the quintile analysis.</Note>;
@@ -20,7 +76,10 @@ export function QuintileChart({ input }: { input: MetricsInput }): JSX.Element {
 
   const rateMode = data.outcomeMode === 'RATE_PER_100K';
   const unit = rateMode ? 'per 100,000 residents' : 'per 100 km²';
-  const max = Math.max(...data.buckets.map((b) => b.confidenceInterval[1] ?? b.meanOutcomeRate), 1);
+  const max = Math.max(
+    ...data.buckets.map((b) => b.confidenceInterval[1] ?? b.meanOutcomeRate),
+    1,
+  );
 
   return (
     <Wrap>
@@ -30,42 +89,24 @@ export function QuintileChart({ input }: { input: MetricsInput }): JSX.Element {
       </Caption>
 
       <Rows>
-        {data.buckets.map((b, i) => {
-          const pct = (b.meanOutcomeRate / max) * 100;
-          const loPct = ((b.confidenceInterval[0] ?? 0) / max) * 100;
-          const hiPct = ((b.confidenceInterval[1] ?? 0) / max) * 100;
-          return (
-            <Row key={b.quintile}>
-              <RowLabel>{LABELS[i]}</RowLabel>
-              <Track>
-                <Bar style={{ width: `${pct}%` }} />
-                <Whisker style={{ left: `${loPct}%`, width: `${Math.max(hiPct - loPct, 0.4)}%` }} />
-              </Track>
-              <Value>
-                {b.meanOutcomeRate.toFixed(rateMode ? 1 : 0)}
-                <small>
-                  {b.neighborhoodCount} NTAs · {b.totalCount.toLocaleString()} events
-                </small>
-              </Value>
-            </Row>
-          );
-        })}
+        {data.buckets.map((bucket, index) => (
+          <QuintileBar
+            key={bucket.quintile}
+            label={LABELS[index] ?? `Q${bucket.quintile}`}
+            rate={bucket.meanOutcomeRate}
+            interval={bucket.confidenceInterval}
+            max={max}
+            neighborhoodCount={bucket.neighborhoodCount}
+            totalCount={bucket.totalCount}
+            rateMode={rateMode}
+          />
+        ))}
       </Rows>
 
-      {!rateMode && (
-        <Warn>
-          Showing <strong>area density</strong>, not per-resident rates — no Census key
-          configured. Institutions and incidents both concentrate in dense neighborhoods, so
-          this view is confounded by density and may run backwards. Add{' '}
-          <code>CENSUS_API_KEY</code> and re-run ingest for per-capita rates and confounder
-          adjustment.
-        </Warn>
-      )}
+      {!rateMode && <DensityModeWarning />}
 
-      {data.caveats.map((c) => (
-        <Caveat key={c} style={{ borderLeftColor: theme.series[1] }}>
-          {c}
-        </Caveat>
+      {data.caveats.map((caveat) => (
+        <Caveat key={caveat}>{caveat}</Caveat>
       ))}
     </Wrap>
   );
@@ -187,7 +228,7 @@ const Warn = styled.p`
 const Caveat = styled.p`
   margin: ${({ theme }) => theme.space(2)} 0 0;
   padding-left: ${({ theme }) => theme.space(2)};
-  border-left: 2px solid;
+  border-left: 2px solid ${({ theme }) => theme.series[1]};
   font-size: 11.5px;
   line-height: 1.5;
   color: ${({ theme }) => theme.textMuted};

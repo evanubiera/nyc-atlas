@@ -1,9 +1,18 @@
-import { DARK, LIGHT, FONT_STACK, SEQUENTIAL_BLUE, type ModeTokens } from '@nyc-atlas/shared';
+import {
+  DARK,
+  FONT_STACK,
+  GAP_DUMBBELL,
+  LIGHT,
+  SEQUENTIAL_BLUE,
+  type ModeTokens,
+} from '@nyc-atlas/shared';
 
 export interface AppTheme extends ModeTokens {
   mode: 'light' | 'dark';
   font: string;
   sequential: readonly string[];
+  /** The two ends of the access-gap dumbbell. One hue, two shades. */
+  gap: { least: string; most: string };
   /** Token-free basemap. No Mapbox key required (specs/001 NFR-4). */
   basemapStyle: string;
   radius: { sm: string; md: string; lg: string };
@@ -25,6 +34,7 @@ export const lightTheme: AppTheme = {
   ...shared,
   mode: 'light',
   basemapStyle: CARTO_LIGHT,
+  gap: { ...GAP_DUMBBELL.light },
 };
 
 export const darkTheme: AppTheme = {
@@ -32,6 +42,7 @@ export const darkTheme: AppTheme = {
   ...shared,
   mode: 'dark',
   basemapStyle: CARTO_DARK,
+  gap: { ...GAP_DUMBBELL.dark },
 };
 
 /** Dark mode is selected, not an automatic flip — see specs/006. */

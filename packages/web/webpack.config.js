@@ -46,7 +46,7 @@ export default (_env, argv) => {
       }),
       new HtmlWebpackPlugin({
         template: './public/index.html',
-        title: 'NYC Cultural Infrastructure & Neighborhood Safety Atlas',
+        title: 'NYC Income and Cultural Institution gaps',
       }),
       new ForkTsCheckerWebpackPlugin({
         typescript: { configFile: path.resolve(__dirname, 'tsconfig.json') },

@@ -55,6 +55,18 @@ export interface NeighborhoodMetric {
   residual: number | null;
   medianHouseholdIncome: number | null;
   povertyRate: number | null;
+  shareBachelorsOrHigher: number | null;
+  foodStoreCount: number;
+  supermarketCount: number;
+  supermarketsPer10k: number | null;
+  gradedStoreCount: number;
+  gradeAStoreCount: number;
+  storeGradeShare: number | null;
+  healthcareSiteCount: number;
+  healthcareSitesPer10k: number | null;
+  schoolCount: number;
+  schoolStudents: number;
+  schoolProficiency: number | null;
   isEnforcementDriven: boolean;
   excluded: { kind: string; explanation: string } | null;
 }
@@ -100,16 +112,53 @@ export interface InstitutionPoint {
   source: string;
   lon: number;
   lat: number;
+  nta2020: string | null;
   scope: string;
   discipline: string | null;
   facilitySubgroup: string | null;
+  facilityType: string | null;
+}
+
+export type GapUnit = 'USD' | 'PER_10K' | 'SHARE';
+
+export interface AccessGapMeasure {
+  key: string;
+  label: string;
+  unit: GapUnit;
+  lowest: number | null;
+  highest: number | null;
+  ratio: number | null;
+  higherIsBetter: boolean;
+  note: string;
+}
+
+export interface AccessGapGroup {
+  neighborhoodCount: number;
+  population: number;
+  institutionsPer10k: number | null;
+  examples: string[];
+}
+
+export interface AccessGapsPayload {
+  measures: AccessGapMeasure[];
+  least: AccessGapGroup;
+  most: AccessGapGroup;
+  exposureLabel: string;
+  amenitiesAvailable: boolean;
+  demographicsAvailable: boolean;
+  caveats: string[];
 }
 
 const METRIC_FIELDS = `
   nta2020 name boroughName population rawCount
   ratePer100k smoothedRatePer100k confidenceInterval
   institutionCount institutionsPerSqKm institutionsPer10k exposureValue
-  residual medianHouseholdIncome povertyRate isEnforcementDriven
+  residual medianHouseholdIncome povertyRate shareBachelorsOrHigher
+  foodStoreCount supermarketCount supermarketsPer10k
+  gradedStoreCount gradeAStoreCount storeGradeShare
+  healthcareSiteCount healthcareSitesPer10k
+  schoolCount schoolStudents schoolProficiency
+  isEnforcementDriven
   excluded { kind explanation }
 `;
 
@@ -166,8 +215,6 @@ export const atlasApi = createApi({
           }
         `,
       }),
-      // The BFF serialises the FeatureCollection to keep the GraphQL schema
-      // free of a bespoke GeoJSON type tree.
       transformResponse: (r: { neighborhoodGeometry: string }) =>
         JSON.parse(r.neighborhoodGeometry) as GeoJSON.FeatureCollection,
     }),
@@ -211,6 +258,28 @@ export const atlasApi = createApi({
       transformResponse: (r: { quintiles: QuintilePayload }) => r.quintiles,
     }),
 
+    accessGaps: build.query<AccessGapsPayload, MetricsInput>({
+      query: (input) => ({
+        document: gql`
+          query AccessGaps($input: MetricsInput!) {
+            accessGaps(input: $input) {
+              exposureLabel
+              amenitiesAvailable
+              demographicsAvailable
+              caveats
+              measures {
+                key label unit lowest highest ratio higherIsBetter note
+              }
+              least { neighborhoodCount population institutionsPer10k examples }
+              most { neighborhoodCount population institutionsPer10k examples }
+            }
+          }
+        `,
+        variables: { input },
+      }),
+      transformResponse: (r: { accessGaps: AccessGapsPayload }) => r.accessGaps,
+    }),
+
     correlation: build.query<CorrelationPayload, MetricsInput>({
       query: (input) => ({
         document: gql`
@@ -230,7 +299,8 @@ export const atlasApi = createApi({
         document: gql`
           query Institutions($scope: InstitutionScope!) {
             institutions(scope: $scope) {
-              id name source lon lat scope discipline facilitySubgroup
+              id name source lon lat nta2020 scope
+              discipline facilitySubgroup facilityType
             }
           }
         `,
@@ -270,5 +340,6 @@ export const {
   useMetricsQuery,
   useQuintilesQuery,
   useCorrelationQuery,
+  useAccessGapsQuery,
   useInstitutionsQuery,
 } = atlasApi;

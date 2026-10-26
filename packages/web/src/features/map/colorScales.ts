@@ -24,8 +24,6 @@ export function sequentialColor(value: number, breaks: readonly number[], alpha 
   let bucket = 0;
   while (bucket < breaks.length && value > (breaks[bucket] as number)) bucket += 1;
 
-  // Spread the buckets across the darker two-thirds of the ramp: the lightest
-  // steps recede into the surface and read as "no data" rather than "low".
   const idx = Math.round((bucket / breaks.length) * (ramp.length - 4)) + 3;
   return hexToRgba(ramp[Math.min(idx, ramp.length - 1)] as string, alpha);
 }
@@ -42,11 +40,9 @@ export function divergingColor(value: number, extent: number, neutral: string, a
   const arm = t < 0 ? DIVERGING_BLUE_RED.low : DIVERGING_BLUE_RED.high;
   const magnitude = Math.abs(t);
 
-  // Near zero, stay neutral — a tiny residual is not a signal.
   if (magnitude < 0.12) return hexToRgba(neutral, alpha);
 
   const steps = arm.length;
-  // low[] runs dark->light, high[] runs light->dark; index from the light end.
   const i = Math.min(steps - 1, Math.floor(magnitude * steps));
   const hex = t < 0 ? arm[steps - 1 - i] : arm[i];
   return hexToRgba(hex as string, alpha);
@@ -60,11 +56,8 @@ export function divergingColor(value: number, extent: number, neutral: string, a
  * directly identifiable rather than inferred by comparing two maps.
  */
 const BIVARIATE_GRID: readonly (readonly string[])[] = [
-  // outcome low -> high, for exposure LOW
   ['#e8e6df', '#d98f8f', '#b02f2f'],
-  // exposure MEDIUM
   ['#a8c7e8', '#9f91b5', '#8f4a6b'],
-  // exposure HIGH
   ['#2a78d6', '#4a6bb5', '#5c4a8f'],
 ];
 

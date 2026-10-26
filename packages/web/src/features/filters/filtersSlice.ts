@@ -17,7 +17,6 @@ export interface FiltersState {
 }
 
 const initialState: FiltersState = {
-  // Shootings are the primary outcome: least affected by reporting bias.
   category: 'SHOOTING',
   exposure: 'PER_CAPITA',
   institutionScope: 'STANDARD',

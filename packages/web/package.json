@@ -6,7 +6,8 @@
     "build": "webpack --mode production",
     "dev": "webpack serve --mode development",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "node --test \"src/**/*.test.ts\""
   },
   "dependencies": {
     "@deck.gl/aggregation-layers": "^9.1.0",
