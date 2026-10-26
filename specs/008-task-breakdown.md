@@ -89,7 +89,7 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 - [x] 8.3 Determinism: canonical-form check over every committed cache
 - [ ] 8.4 Performance: 60 fps with choropleth + 50k points
 - [x] 8.5 Geometry payload budget check in CI — `check-bundle-budget.mjs`, geometry and bundle
-- [ ] 8.6 Axe accessibility pass
+- [x] 8.6 Axe accessibility pass — structure and semantics, both themes, in CI
 - [x] 8.7 README with setup, ingest and methodology summary
 
 ## Critical path
