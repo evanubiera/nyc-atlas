@@ -6,6 +6,7 @@ import { MetricsService } from './metrics.service.js';
 import { IncidentsService } from '../incidents/incidents.service.js';
 import { InstitutionsService } from '../institutions/institutions.service.js';
 import { CensusService } from '../census/census.service.js';
+import { AmenitiesService } from '../amenities/amenities.service.js';
 import { IngestService } from '../ingest/ingest.service.js';
 
 @Module({
@@ -16,6 +17,7 @@ import { IngestService } from '../ingest/ingest.service.js';
     IncidentsService,
     InstitutionsService,
     CensusService,
+    AmenitiesService,
     IngestService,
   ],
   exports: [MetricsService, IngestService, CacheService],
