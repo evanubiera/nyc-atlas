@@ -64,7 +64,7 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 - [x] 5.5 Hover tooltips showing raw **and** smoothed rates
 - [x] 5.6 Excluded NTAs at zero elevation, hatched rather than flat grey
 - [x] 5.7 Neighborhood labels with surface halo, above z11.5
-- [ ] 5.8 Keyboard traversal of NTAs
+- [x] 5.8 Keyboard traversal of NTAs, spatial rather than alphabetical
 
 ## Phase 6 — Analysis
 - [ ] 6.1 Scatter: exposure vs outcome, extremes labeled

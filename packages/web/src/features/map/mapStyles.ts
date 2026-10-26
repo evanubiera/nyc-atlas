@@ -71,3 +71,33 @@ export const TooltipValue = styled.span<{ $muted: boolean }>`
   font-variant-numeric: tabular-nums;
   color: ${({ theme, $muted }) => ($muted ? theme.textMuted : theme.textPrimary)};
 `;
+
+/**
+ * Announces the focused neighborhood to a screen reader without showing the
+ * text, since the map already draws it. Clipped rather than `display: none`,
+ * which assistive technology skips entirely.
+ */
+export const VisuallyHidden = styled.span`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+`;
+
+/** The keyboard focus ring for the map itself, which has nothing else to show one on. */
+export const KeyboardLayer = styled.div`
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+
+  &:focus-visible {
+    outline: 3px solid ${({ theme }) => theme.series[0]};
+    outline-offset: -3px;
+  }
+`;

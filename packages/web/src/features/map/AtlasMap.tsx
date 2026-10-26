@@ -13,8 +13,9 @@ import {
 } from '../../store/atlasApi.js';
 import { useAppSelector } from '../../store/hooks.js';
 import { MapTooltip, type HoverInfo } from './MapTooltip.tsx';
-import { MapCanvas, Overlay, OverlayMessage } from './mapStyles.ts';
+import { KeyboardLayer, MapCanvas, Overlay, OverlayMessage, VisuallyHidden } from './mapStyles.ts';
 import { computeTerciles, indexByNta, maxSmoothedRate } from './mapEncoding.ts';
+import { ARROW_DIRECTIONS, nextInDirection } from './keyboardTraversal.ts';
 import {
   boundsOf,
   quantizeBounds,
@@ -110,6 +111,34 @@ export function AtlasMap({ input }: { input: MetricsInput }): JSX.Element {
     { skip: bounds === null },
   );
 
+  /**
+   * The canvas is not focusable and has no DOM to traverse, so NFR-8 is met
+   * with a focusable overlay: arrows step between neighborhoods, the view
+   * follows, and a live region reads out where focus landed.
+   */
+  const [focusedNta, setFocusedNta] = useState<string | null>(null);
+  const focusedRow = focusedNta === null ? null : (byNta.get(focusedNta) ?? null);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>): void => {
+    const direction = ARROW_DIRECTIONS[event.key];
+    if (direction === undefined) {
+      if (event.key === 'Escape') setFocusedNta(null);
+      return;
+    }
+
+    event.preventDefault();
+    const next = nextInDirection(focusedRow, [...byNta.values()], direction);
+    if (!next) return;
+
+    setFocusedNta(next.nta2020);
+    setViewState((current) => ({
+      ...current,
+      longitude: next.centroid[0] as number,
+      latitude: next.centroid[1] as number,
+      zoom: Math.max(current.zoom, 12),
+    }));
+  };
+
   const layers = useAtlasLayers({
     geometry,
     byNta,
@@ -143,6 +172,24 @@ export function AtlasMap({ input }: { input: MetricsInput }): JSX.Element {
       >
         <BaseMap mapStyle={theme.basemapStyle} attributionControl />
       </DeckGL>
+
+      <KeyboardLayer
+        tabIndex={0}
+        role="application"
+        aria-label="Neighborhood map. Use the arrow keys to move between neighborhoods, Escape to leave."
+        onKeyDown={handleKeyDown}
+        onBlur={() => setFocusedNta(null)}
+      />
+
+      <VisuallyHidden aria-live="polite">
+        {focusedRow
+          ? `${focusedRow.name}, ${focusedRow.boroughName}. ` +
+            `${focusedRow.institutionCount} cultural institutions. ` +
+            (focusedRow.smoothedRatePer100k === null
+              ? 'No rate available.'
+              : `Smoothed rate ${focusedRow.smoothedRatePer100k.toFixed(1)} per 100,000.`)
+          : ''}
+      </VisuallyHidden>
 
       {hover && <MapTooltip hover={hover} rateMode={metrics?.outcomeMode === 'RATE_PER_100K'} />}
     </MapCanvas>
