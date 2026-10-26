@@ -87,7 +87,7 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 - [x] 8.1 Unit tests — category mapping (74 values), PIP landmarks, rate math, EB shrinkage, and pooled group figures (36 tests)
 - [x] 8.2 Ingest fails on an unmapped offense code, rather than writing UNKNOWN
 - [x] 8.3 Determinism: canonical-form check over every committed cache
-- [ ] 8.4 Performance: 60 fps with choropleth + 50k points
+- [~] 8.4 Performance: accessor budget guarded in CI; **end-to-end fps needs a browser profile**
 - [x] 8.5 Geometry payload budget check in CI — `check-bundle-budget.mjs`, geometry and bundle
 - [x] 8.6 Axe accessibility pass — structure and semantics, both themes, in CI
 - [x] 8.7 README with setup, ingest and methodology summary
