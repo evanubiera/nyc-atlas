@@ -67,7 +67,7 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 - [x] 5.8 Keyboard traversal of NTAs, spatial rather than alphabetical
 
 ## Phase 6 — Analysis
-- [ ] 6.1 Scatter: exposure vs outcome, extremes labeled
+- [x] 6.1 Scatter: exposure vs outcome, extremes labeled
 - [x] 6.2 Quintile bar chart with CI whiskers
 - [x] 6.3 Bivariate choropleth + 2D legend
 - [x] 6.4 Residual (diverging) map after confounder adjustment

@@ -8,6 +8,7 @@ import { FloatingCategoryCaveat } from './features/transparency/CategoryCaveat.t
 import { DataQualityPanel } from './features/transparency/DataQualityPanel.tsx';
 import { QuintileChart } from './features/analysis/QuintileChart.js';
 import { CorrelationSummary } from './features/analysis/CorrelationSummary.js';
+import { ScatterPanel } from './features/analysis/ScatterPanel.tsx';
 import { AccessGapsPanel } from './features/analysis/access-gaps/AccessGapsPanel.tsx';
 import { NeighborhoodTable } from './features/analysis/neighborhood-table/NeighborhoodTable.tsx';
 import { AtlasControls } from './app/AtlasControls.tsx';
@@ -78,6 +79,7 @@ export function App(): JSX.Element {
           <Side>
             <AccessGapsPanel input={input} />
             <QuintileChart input={input} />
+            <ScatterPanel input={input} />
             <CorrelationSummary input={input} />
             <DataQualityPanel />
           </Side>
