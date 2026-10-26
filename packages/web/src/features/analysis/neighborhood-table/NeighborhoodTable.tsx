@@ -27,10 +27,12 @@ import {
   ExportButton,
   Head,
   HeadActions,
+  HeadBlock,
   Scroller,
   Table,
   Wrap,
 } from './tableStyles.ts';
+import { CategoryCaveat } from '../../transparency/CategoryCaveat.tsx';
 
 const INITIAL_SORT: SortState = { key: 'institutionCount', descending: true };
 
@@ -138,12 +140,15 @@ export function NeighborhoodTable({ input }: { input: MetricsInput }): JSX.Eleme
 
   return (
     <Wrap>
-      <TableCaption
-        rowCount={rows.length}
-        sort={sort}
-        onExport={handleExport}
-        canExport={rows.length > 0 && provenance !== undefined}
-      />
+      <HeadBlock>
+        <TableCaption
+          rowCount={rows.length}
+          sort={sort}
+          onExport={handleExport}
+          canExport={rows.length > 0 && provenance !== undefined}
+        />
+        <CategoryCaveat category={input.category} />
+      </HeadBlock>
 
       <Scroller>
         <Table>

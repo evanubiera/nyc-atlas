@@ -333,6 +333,21 @@ export function classifyOffense(
   return { category: 'UNKNOWN', unmapped: false, viaFallback: false };
 }
 
+/**
+ * The caveat an enforcement-driven category must carry wherever its figures
+ * appear. It lives here rather than in the BFF because the client states it
+ * inline next to the map and the table, and two copies of this sentence would
+ * drift apart (specs/008 §7.5).
+ */
+export function enforcementDrivenCaveat(category: CrimeCategory): string {
+  const meta = CRIME_CATEGORY_META[category];
+  return (
+    `"${meta.label}" is enforcement-driven: counts reflect where police are deployed ` +
+    `at least as much as where the behaviour occurs. Treat differences between ` +
+    `neighborhoods as a measure of policing, not of underlying crime.`
+  );
+}
+
 /** Categories shown by default — the enforcement-driven ones are opt-in. */
 export const DEFAULT_VISIBLE_CATEGORIES: readonly CrimeCategory[] = CRIME_CATEGORIES.filter(
   (c) => !CRIME_CATEGORY_META[c].isEnforcementDriven && c !== 'UNKNOWN',

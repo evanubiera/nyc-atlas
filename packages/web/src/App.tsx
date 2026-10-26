@@ -4,6 +4,7 @@ import { GlobalStyle } from './theme/GlobalStyle.js';
 import { resolveTheme } from './theme/index.js';
 import { AtlasMap } from './features/map/AtlasMap.js';
 import { LimitationsPanel } from './features/transparency/LimitationsPanel.js';
+import { FloatingCategoryCaveat } from './features/transparency/CategoryCaveat.tsx';
 import { QuintileChart } from './features/analysis/QuintileChart.js';
 import { CorrelationSummary } from './features/analysis/CorrelationSummary.js';
 import { AccessGapsPanel } from './features/analysis/access-gaps/AccessGapsPanel.tsx';
@@ -63,6 +64,7 @@ export function App(): JSX.Element {
           <Main>
             <MapArea>
               <AtlasMap input={input} />
+              <FloatingCategoryCaveat category={filters.category} />
               <LimitationsPanel />
             </MapArea>
 

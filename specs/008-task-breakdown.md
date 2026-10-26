@@ -81,7 +81,7 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 - [ ] 7.2 Per-NTA provenance display
 - [ ] 7.3 Quality report surfaced in the UI
 - [x] 7.4 Attribution on every export — sources and the causation caveat ride in the file
-- [ ] 7.5 Enforcement-driven category caveats inline
+- [x] 7.5 Enforcement-driven category caveats inline, on the map and the table
 
 ## Phase 8 — Hardening
 - [x] 8.1 Unit tests — category mapping (74 values), PIP landmarks, rate math, EB shrinkage, and pooled group figures (36 tests)

@@ -254,3 +254,11 @@ export const ExportButton = styled.button`
     cursor: default;
   }
 `;
+
+/**
+ * Holds the caption and any inline caveat as one grid row, so `Wrap` keeps its
+ * two-row shape and the scroller still gets all the remaining height.
+ */
+export const HeadBlock = styled.div`
+  min-width: 0;
+`;

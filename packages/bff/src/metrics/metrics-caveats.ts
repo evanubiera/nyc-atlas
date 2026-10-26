@@ -1,4 +1,8 @@
-import { CRIME_CATEGORY_META, type CrimeCategory } from '@nyc-atlas/shared';
+import {
+  CRIME_CATEGORY_META,
+  enforcementDrivenCaveat,
+  type CrimeCategory,
+} from '@nyc-atlas/shared';
 import { CONFOUNDER_LABELS } from './metrics.types.js';
 
 export const AMENITIES_MISSING =
@@ -18,15 +22,6 @@ export const GROUPS_ARE_DESCRIBED_NOT_EXPLAINED =
   'These are two groups of neighborhoods described side by side. Cultural institutions are ' +
   'sited where income already is, so this contrast shows the shape of that siting — not an ' +
   'effect of institutions on groceries, schools or clinics.';
-
-export function enforcementDrivenCaveat(category: CrimeCategory): string {
-  const meta = CRIME_CATEGORY_META[category];
-  return (
-    `"${meta.label}" is enforcement-driven: counts reflect where police are deployed ` +
-    `at least as much as where the behaviour occurs. Treat differences between ` +
-    `neighborhoods as a measure of policing, not of underlying crime.`
-  );
-}
 
 export function residualAdjustmentCaveat(rSquared: number): string {
   return (

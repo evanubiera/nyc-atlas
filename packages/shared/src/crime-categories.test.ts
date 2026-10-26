@@ -8,6 +8,7 @@ import {
   CRIME_CATEGORY_META,
   DEFAULT_VISIBLE_CATEGORIES,
   CRIME_CATEGORIES,
+  enforcementDrivenCaveat,
 } from './crime-categories.js';
 
 test('exact ofns_desc match resolves to its category', () => {
@@ -115,6 +116,18 @@ test('enforcement-driven categories are excluded from the default view', () => {
   assert.ok(DEFAULT_VISIBLE_CATEGORIES.includes('SHOOTING'));
   assert.ok(DEFAULT_VISIBLE_CATEGORIES.includes('VIOLENT_PERSON'));
   assert.ok(!DEFAULT_VISIBLE_CATEGORIES.includes('UNKNOWN'));
+});
+
+test('every enforcement-driven category can state its own caveat', () => {
+  // The client prints this next to the map and the table; the server attaches
+  // the same string to the payload. One wording, so the two cannot disagree.
+  for (const c of CRIME_CATEGORIES) {
+    if (!CRIME_CATEGORY_META[c].isEnforcementDriven) continue;
+
+    const caveat = enforcementDrivenCaveat(c);
+    assert.ok(caveat.includes(CRIME_CATEGORY_META[c].label), `${c} must name itself`);
+    assert.ok(caveat.includes('policing'), `${c} must say what the count actually measures`);
+  }
 });
 
 test('shootings are their own category, not folded into violent-person', () => {
