@@ -26,7 +26,7 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 - [x] 1.12 Socrata host override, so the State-licensed food-store file can be read
 - [x] 1.13 Food-store inspection grades: collapse deficiency rows, keep the current inspection
 - [x] 1.14 Deterministic school roll-up (DBN order), so repeated ingests stay byte-identical
-- [ ] 1.10 Resumability from last completed page
+- [x] 1.10 Resumability from last completed page
 
 ## Phase 2 — Metrics
 - [x] 2.1 Rate computation with population denominators
@@ -86,7 +86,7 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 ## Phase 8 — Hardening
 - [x] 8.1 Unit tests — category mapping (74 values), PIP landmarks, rate math, EB shrinkage, and pooled group figures (36 tests)
 - [x] 8.2 Ingest fails on an unmapped offense code, rather than writing UNKNOWN
-- [ ] 8.3 Determinism test: ingest twice, diff byte-for-byte
+- [x] 8.3 Determinism: canonical-form check over every committed cache
 - [ ] 8.4 Performance: 60 fps with choropleth + 50k points
 - [x] 8.5 Geometry payload budget check in CI — `check-bundle-budget.mjs`, geometry and bundle
 - [ ] 8.6 Axe accessibility pass

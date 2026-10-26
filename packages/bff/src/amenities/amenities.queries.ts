@@ -44,7 +44,7 @@ export async function fetchFoodInspections(socrata: SocrataService): Promise<Ins
   const dataset = DATASETS.foodSafetyInspections;
   const rows: InspectionRow[] = [];
 
-  for await (const page of socrata.paginate<InspectionRow>(dataset.id, {
+  for await (const { rows: page } of socrata.paginate<InspectionRow>(dataset.id, {
     ...hostOptions(dataset),
     select:
       'county, trade_name, owner_name, street, inspection_grade, inspection_date, georeference',

@@ -20,6 +20,7 @@ import {
   type ProvenanceCache,
 } from './ingest.types.js';
 import { SocrataService } from '../socrata/socrata.service.js';
+import { ResumeService } from './resume.service.js';
 
 export interface IngestOptions {
   /** Include the 2006-2019 historic complaint set (millions of rows). */
@@ -58,6 +59,7 @@ export class IngestService {
     private readonly amenities: AmenitiesService,
     private readonly cache: CacheService,
     private readonly socrata: SocrataService,
+    private readonly resume: ResumeService,
   ) {}
 
   async run(options: IngestOptions = {}): Promise<void> {
@@ -65,12 +67,14 @@ export class IngestService {
     await this.geography.load();
 
     const tally = new IngestTally();
+    await this.resume.load();
 
     await this.ingestIncidents(tally, options.includeHistoric === true);
     await this.ingestInstitutions(tally);
     await this.ingestAmenities(tally);
     await this.ingestDemographics(tally);
     await this.recordProvenance();
+    await this.resume.finish();
 
     if (tally.coordinatesRepaired > 0) {
       tally.note(transposedCoordinatesNote(tally.coordinatesRepaired));
@@ -84,12 +88,13 @@ export class IngestService {
   }
 
   private async ingestIncidents(tally: IngestTally, includeHistoric: boolean): Promise<void> {
-    const shootings = await this.incidents.ingestShootings();
+    const shootings = await this.incidents.ingestShootings(this.resume);
     tally.absorbIncidents(DATASETS.shootings.id, shootings);
 
     const complaints = await this.incidents.ingestComplaints(
       DATASETS.complaintsCurrent.id,
       'current year-to-date',
+      this.resume,
     );
     tally.absorbIncidents(DATASETS.complaintsCurrent.id, complaints);
 
@@ -99,6 +104,7 @@ export class IngestService {
       const historic = await this.incidents.ingestComplaints(
         DATASETS.complaintsHistoric.id,
         'historic 2006-2019',
+        this.resume,
       );
       tally.absorbIncidents(DATASETS.complaintsHistoric.id, historic);
       aggregate = mergeAggregates(aggregate, historic.aggregate);
@@ -173,6 +179,7 @@ export class IngestService {
    */
   async refreshProvenance(): Promise<void> {
     await this.recordProvenance();
+    await this.resume.finish();
     this.logger.log(`Wrote ${CACHE_FILES.provenance}`);
   }
 

@@ -20,3 +20,4 @@ data/raw/
 # Logs
 *.log
 npm-debug.log*
+data/cache/ingest-resume.json

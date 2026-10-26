@@ -22,6 +22,16 @@ import {
 /** nta2020 -> category -> 'YYYY-MM' -> count */
 export type IncidentAggregate = Record<string, Record<string, Record<string, number>>>;
 
+/**
+ * How a caller persists progress. Passed in rather than depended on, so the
+ * ingest stays testable and a run can opt out of checkpointing entirely.
+ */
+export interface ResumeHooks {
+  restore(datasetId: string): { nextOffset: number; outcome: IngestOutcome } | null;
+  checkpoint(datasetId: string, nextOffset: number, outcome: IngestOutcome): Promise<void>;
+  complete(datasetId: string): Promise<void>;
+}
+
 export interface IngestOutcome {
   aggregate: IncidentAggregate;
   totalRows: number;
@@ -66,14 +76,24 @@ export class IncidentsService {
    * about marginalized neighborhoods, where under-reporting is worst, this is
    * the measure that holds up. See specs/007 §3.
    */
-  async ingestShootings(): Promise<IngestOutcome> {
-    const outcome = emptyOutcome();
-    this.logger.log('Ingesting shootings (2006–present)…');
+  async ingestShootings(resume?: ResumeHooks): Promise<IngestOutcome> {
+    const datasetId = DATASETS.shootings.id;
+    const restored = resume?.restore(datasetId);
+    const outcome = restored?.outcome ?? emptyOutcome();
+    const startOffset = restored?.nextOffset ?? 0;
 
-    for await (const page of this.socrata.paginate<ShootingRow>(DATASETS.shootings.id, {
-      select: 'occur_date, latitude, longitude',
-      order: 'occur_date',
-    })) {
+    this.logger.log(
+      startOffset > 0
+        ? `Resuming shootings from row ${startOffset.toLocaleString()}…`
+        : 'Ingesting shootings (2006–present)…',
+    );
+
+    for await (const { rows: page, nextOffset } of this.socrata.paginate<ShootingRow>(
+      datasetId,
+      { select: 'occur_date, latitude, longitude', order: 'occur_date' },
+      undefined,
+      startOffset,
+    )) {
       for (const row of page) {
         outcome.totalRows += 1;
         const placed = this.place(row.longitude, row.latitude, row.occur_date, outcome);
@@ -81,8 +101,10 @@ export class IncidentsService {
         bumpAggregate(outcome.aggregate, placed.nta, 'SHOOTING', placed.month);
         outcome.accepted += 1;
       }
+      await resume?.checkpoint(datasetId, nextOffset, outcome);
     }
 
+    await resume?.complete(datasetId);
     this.logSummary('shootings', outcome);
     return outcome;
   }
@@ -91,14 +113,30 @@ export class IncidentsService {
    * Complaints — the secondary outcome, carrying reporting bias that is itself
    * correlated with the exposure of interest.
    */
-  async ingestComplaints(datasetId: string, label: string): Promise<IngestOutcome> {
-    const outcome = emptyOutcome();
-    this.logger.log(`Ingesting complaints (${label})…`);
+  async ingestComplaints(
+    datasetId: string,
+    label: string,
+    resume?: ResumeHooks,
+  ): Promise<IngestOutcome> {
+    const restored = resume?.restore(datasetId);
+    const outcome = restored?.outcome ?? emptyOutcome();
+    const startOffset = restored?.nextOffset ?? 0;
 
-    for await (const page of this.socrata.paginate<ComplaintRow>(datasetId, {
-      select: 'cmplnt_fr_dt, ofns_desc, pd_desc, law_cat_cd, latitude, longitude',
-      order: 'cmplnt_fr_dt',
-    })) {
+    this.logger.log(
+      startOffset > 0
+        ? `Resuming complaints (${label}) from row ${startOffset.toLocaleString()}…`
+        : `Ingesting complaints (${label})…`,
+    );
+
+    for await (const { rows: page, nextOffset } of this.socrata.paginate<ComplaintRow>(
+      datasetId,
+      {
+        select: 'cmplnt_fr_dt, ofns_desc, pd_desc, law_cat_cd, latitude, longitude',
+        order: 'cmplnt_fr_dt',
+      },
+      undefined,
+      startOffset,
+    )) {
       for (const row of page) {
         outcome.totalRows += 1;
         const placed = this.place(row.longitude, row.latitude, row.cmplnt_fr_dt, outcome);
@@ -113,8 +151,10 @@ export class IncidentsService {
         bumpAggregate(outcome.aggregate, placed.nta, cls.category, placed.month);
         outcome.accepted += 1;
       }
+      await resume?.checkpoint(datasetId, nextOffset, outcome);
     }
 
+    await resume?.complete(datasetId);
     this.logSummary(`complaints (${label})`, outcome);
     return outcome;
   }

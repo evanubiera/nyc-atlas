@@ -90,19 +90,26 @@ export class SocrataService {
     return (await res.json()) as GeoJsonFeatureCollection;
   }
 
-  /** Pages through a dataset. Yields batches so callers can stream-aggregate. */
+  /**
+   * Pages through a dataset. Yields batches so callers can stream-aggregate.
+   *
+   * `startOffset` resumes an interrupted read. It is only sound with an
+   * explicit `$order` in the query: without a stable sort, an offset does not
+   * name the same rows on a later run.
+   */
   async *paginate<T>(
     datasetId: string,
     query: Omit<SoqlQuery, 'limit' | 'offset'>,
     pageSize = SOCRATA_MAX_PAGE,
-  ): AsyncGenerator<T[], void, undefined> {
-    let offset = 0;
+    startOffset = 0,
+  ): AsyncGenerator<{ rows: T[]; nextOffset: number }, void, undefined> {
+    let offset = startOffset;
     for (;;) {
       const page = await this.query<T>(datasetId, { ...query, limit: pageSize, offset });
       if (page.length === 0) return;
-      yield page;
-      if (page.length < pageSize) return;
       offset += pageSize;
+      yield { rows: page, nextOffset: offset };
+      if (page.length < pageSize) return;
     }
   }
 

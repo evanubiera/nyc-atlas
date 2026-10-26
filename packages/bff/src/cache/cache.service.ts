@@ -45,9 +45,20 @@ export class CacheService {
   async write(name: string, payload: unknown): Promise<void> {
     const file = this.path(name);
     await mkdir(dirname(file), { recursive: true });
-    await writeFile(file, JSON.stringify(sortDeep(payload), null, 2) + '\n', 'utf8');
+    await writeFile(file, serializeCache(payload), 'utf8');
     this.logger.log(`Wrote ${name}`);
   }
+}
+
+/**
+ * The canonical on-disk form (NFR-11).
+ *
+ * Exported so the determinism contract can be tested directly and checked
+ * against the committed caches, rather than inferred from running an ingest
+ * twice against live APIs.
+ */
+export function serializeCache(payload: unknown): string {
+  return JSON.stringify(sortDeep(payload), null, 2) + '\n';
 }
 
 function sortDeep(value: unknown): unknown {

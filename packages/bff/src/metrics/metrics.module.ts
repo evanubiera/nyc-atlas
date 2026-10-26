@@ -8,6 +8,7 @@ import { InstitutionsService } from '../institutions/institutions.service.js';
 import { CensusService } from '../census/census.service.js';
 import { AmenitiesService } from '../amenities/amenities.service.js';
 import { IngestService } from '../ingest/ingest.service.js';
+import { ResumeService } from '../ingest/resume.service.js';
 
 @Module({
   imports: [SocrataModule, GeographyModule],
@@ -19,6 +20,7 @@ import { IngestService } from '../ingest/ingest.service.js';
     CensusService,
     AmenitiesService,
     IngestService,
+    ResumeService,
   ],
   exports: [MetricsService, IngestService, CacheService, IncidentsService],
 })
