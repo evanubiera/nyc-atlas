@@ -67,6 +67,7 @@ export type NeighborhoodMetric = Pick<
   | 'schoolStudents'
   | 'schoolProficiency'
   | 'isEnforcementDriven'
+  | 'daytimePopulationSuspected'
   | 'excluded'
   | 'centroid'
 >;
@@ -110,7 +111,7 @@ const METRIC_FIELDS = `
   gradedStoreCount gradeAStoreCount storeGradeShare
   healthcareSiteCount healthcareSitesPer10k
   schoolCount schoolStudents schoolProficiency
-  isEnforcementDriven centroid
+  isEnforcementDriven daytimePopulationSuspected centroid
   excluded { kind explanation }
 `;
 

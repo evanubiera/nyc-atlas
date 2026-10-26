@@ -33,7 +33,7 @@ function row(overrides: Partial<NeighborhoodMetric> = {}): NeighborhoodMetric {
     schoolCount: 5,
     schoolStudents: 1400,
     schoolProficiency: 0.58,
-    isEnforcementDriven: false,
+    isEnforcementDriven: false, daytimePopulationSuspected: false,
     excluded: null,
     ...overrides,
   };

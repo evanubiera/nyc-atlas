@@ -143,6 +143,13 @@ export class NeighborhoodMetric {
   schoolProficiency?: number | null;
 
   @Field(() => Boolean) isEnforcementDriven!: boolean;
+
+  @Field(() => Boolean, {
+    description:
+      'True where destinations far outnumber residents, so the per-resident rate is ' +
+      'inflated by a daytime population no published figure covers. Inferred, not measured.',
+  })
+  daytimePopulationSuspected!: boolean;
   @Field(() => ExclusionNote, { nullable: true }) excluded?: ExclusionNote | null;
 }
 

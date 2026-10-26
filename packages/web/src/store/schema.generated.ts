@@ -172,6 +172,7 @@ export interface NeighborhoodMetric {
   boroughName: string;
   centroid: number[];
   confidenceInterval: number[] | null;
+  daytimePopulationSuspected: boolean;
   excluded: ExclusionNote | null;
   exposureValue: number | null;
   foodStoreCount: number;

@@ -50,7 +50,11 @@ export function neighborhoodProvenance(
         row.population === null
           ? 'No ACS estimate for this neighborhood'
           : `${row.population.toLocaleString()} residents; median income is a ` +
-            'population-weighted mean of tract medians, not a true median',
+            'population-weighted mean of tract medians, not a true median' +
+            (row.daytimePopulationSuspected
+              ? '. Far more destinations than residents here, so the daytime population ' +
+                'dwarfs this denominator and the per-resident rate is inflated'
+              : ''),
       present: row.population !== null,
     },
     {

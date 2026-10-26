@@ -42,7 +42,7 @@ function row(overrides: Partial<NeighborhoodRow> = {}): NeighborhoodRow {
     schoolCount: 0,
     schoolStudents: 0,
     schoolProficiency: null,
-    isEnforcementDriven: false,
+    isEnforcementDriven: false, daytimePopulationSuspected: false,
     excluded: null,
     ...overrides,
   };

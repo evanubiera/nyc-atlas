@@ -177,6 +177,8 @@ export function buildNeighborhoodRow(inputs: RowInputs): NeighborhoodRow {
     ...amenityFields(amenities, population),
 
     isEnforcementDriven: inputs.isEnforcementDriven,
+    // Set by the service once every row exists; it is a citywide comparison.
+    daytimePopulationSuspected: false,
     excluded,
   };
 }

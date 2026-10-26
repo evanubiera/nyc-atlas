@@ -38,6 +38,7 @@ import {
   summarizeGroup,
 } from './access-gaps.js';
 import { LruCache } from '../common/lru-cache.js';
+import { daytimeDistortionCaveat, scanForDistortion } from './daytime-distortion.js';
 import {
   aggregateToUnits,
   compareGeographies,
@@ -224,6 +225,16 @@ export class MetricsService implements OnModuleInit {
           this.walkability?.byNta[record.nta2020]?.walkableInstitutions ?? null,
       }),
     );
+
+    // The flag needs the finished rows, so it runs after them and marks the
+    // ones whose denominator should not be read at face value (specs/008 §2.6).
+    const scan = scanForDistortion(rows);
+    for (const row of rows) {
+      row.daytimePopulationSuspected = scan.suspected.has(row.nta2020);
+    }
+    if (scan.suspected.size > 0) {
+      caveats.push(daytimeDistortionCaveat(scan, scan.suspected.size));
+    }
 
     const residualExtent = demographicsAvailable
       ? this.applyResiduals(rows, demographics, caveats)

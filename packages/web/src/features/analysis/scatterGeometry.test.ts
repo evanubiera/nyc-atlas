@@ -19,7 +19,7 @@ function metric(over: Partial<NeighborhoodMetric>): NeighborhoodMetric {
     povertyRate: null, shareBachelorsOrHigher: null, foodStoreCount: 0, supermarketCount: 0,
     supermarketsPer10k: null, gradedStoreCount: 0, gradeAStoreCount: 0, storeGradeShare: null,
     healthcareSiteCount: 0, healthcareSitesPer10k: null, schoolCount: 0, schoolStudents: 0,
-    schoolProficiency: null, isEnforcementDriven: false, excluded: null,
+    schoolProficiency: null, isEnforcementDriven: false, daytimePopulationSuspected: false, excluded: null,
     ...over,
   };
 }

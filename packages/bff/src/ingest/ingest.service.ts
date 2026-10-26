@@ -253,9 +253,7 @@ export class IngestService {
   }
 
   async refreshProvenance(): Promise<void> {
-    await this.ingestWalkability(tally);
     await this.recordProvenance();
-    await this.resume.finish();
     this.logger.log(`Wrote ${CACHE_FILES.provenance}`);
   }
 

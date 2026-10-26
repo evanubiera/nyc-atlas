@@ -283,6 +283,11 @@ type NeighborhoodMetric {
   boroughName: String!
   centroid: [Float!]!
   confidenceInterval: [Float!]
+
+  """
+  True where destinations far outnumber residents, so the per-resident rate is inflated by a daytime population no published figure covers. Inferred, not measured.
+  """
+  daytimePopulationSuspected: Boolean!
   excluded: ExclusionNote
   exposureValue: Float
 

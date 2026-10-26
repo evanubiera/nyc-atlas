@@ -55,6 +55,11 @@ export interface NeighborhoodRow {
   schoolProficiency: number | null;
 
   isEnforcementDriven: boolean;
+  /**
+   * True where destinations far outnumber residents, so the per-resident rate
+   * is inflated by a daytime population the census denominator cannot see.
+   */
+  daytimePopulationSuspected: boolean;
   excluded: ExclusionNote | null;
 }
 

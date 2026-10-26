@@ -34,7 +34,7 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 - [x] 2.3 Empirical-Bayes shrinkage toward borough mean
 - [x] 2.4 Poisson confidence intervals
 - [x] 2.5 Walkable-access exposure from tract centroids, 800 m
-- [ ] 2.6 Daytime-population flagging for distorted denominators
+- [x] 2.6 Daytime-population flagging for distorted denominators — inferred, not measured
 - [x] 2.7 Partial correlation adjusting for the confounder set
 - [x] 2.8 Quintile analysis with CIs
 - [x] 2.9 Server-computed scale breaks (`ScaleHints`)
