@@ -10,6 +10,7 @@ export const CACHE_FILES = {
   amenities: 'amenities.json',
   quality: 'quality-report.json',
   provenance: 'provenance.json',
+  walkability: 'walkability.json',
 } as const;
 
 export interface IncidentCache {
@@ -51,6 +52,16 @@ export interface AmenitiesCache {
 export interface ProvenanceCache {
   generatedAt: string;
   datasets: Record<string, { rowsUpdatedAt: string | null; rowCount: number | null }>;
+}
+
+/**
+ * Walkable cultural access per neighborhood. Its own file because it depends
+ * on tract geometry rather than on any amenity source, and degrades on its own.
+ */
+export interface WalkabilityCache {
+  byNta: Record<string, { walkableInstitutions: number; shareWithAnyWithinWalk: number; tractCount: number }>;
+  available: boolean;
+  radiusMetres: number;
 }
 
 export interface QualityReport {

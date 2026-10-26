@@ -46,9 +46,20 @@ export function missingSchoolProficiencyCaveat(missing: number, total: number): 
   );
 }
 
+export const WALKABILITY_MISSING =
+  'Walkable access is not available: the tract geometry stage of the last ingest ' +
+  'produced nothing, so no exposure can be shown for this measure. Re-run `npm run ingest`.';
+
+export const WALKABILITY_IS_STRAIGHT_LINE =
+  'Walkable access counts institutions within 800 m in a straight line, not along the ' +
+  'street network. It overstates reach wherever water, rail or a park edge breaks the ' +
+  'grid — most visibly along the waterfront and either side of a rail cut.';
+
 export interface DataAvailability {
   amenitiesAvailable: boolean;
   demographicsAvailable: boolean;
+  walkabilityAvailable?: boolean;
+  exposure?: string;
 }
 
 export function collectComputeCaveats(
@@ -59,6 +70,11 @@ export function collectComputeCaveats(
 
   if (!availability.amenitiesAvailable) caveats.push(AMENITIES_MISSING);
   if (!availability.demographicsAvailable) caveats.push(DEMOGRAPHICS_MISSING);
+  if (availability.exposure === 'ACCESS') {
+    caveats.push(
+      availability.walkabilityAvailable === false ? WALKABILITY_MISSING : WALKABILITY_IS_STRAIGHT_LINE,
+    );
+  }
   if (CRIME_CATEGORY_META[category].isEnforcementDriven) {
     caveats.push(enforcementDrivenCaveat(category));
   }

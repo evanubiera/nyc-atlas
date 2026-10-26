@@ -1,0 +1,1316 @@
+{
+  "available": true,
+  "byNta": {
+    "BK0101": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 15,
+      "walkableInstitutions": 21
+    },
+    "BK0102": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 13,
+      "walkableInstitutions": 44.84615384615385
+    },
+    "BK0103": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 10,
+      "walkableInstitutions": 32
+    },
+    "BK0104": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 16,
+      "walkableInstitutions": 27.375
+    },
+    "BK0201": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 6,
+      "walkableInstitutions": 68.66666666666667
+    },
+    "BK0202": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 11,
+      "walkableInstitutions": 70
+    },
+    "BK0203": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 11,
+      "walkableInstitutions": 63.72727272727273
+    },
+    "BK0204": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 7,
+      "walkableInstitutions": 58.142857142857146
+    },
+    "BK0261": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 8
+    },
+    "BK0301": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 21,
+      "walkableInstitutions": 37.23809523809524
+    },
+    "BK0302": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 23,
+      "walkableInstitutions": 30.869565217391305
+    },
+    "BK0401": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 13,
+      "walkableInstitutions": 24.692307692307693
+    },
+    "BK0402": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 16,
+      "walkableInstitutions": 18.1875
+    },
+    "BK0471": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 13
+    },
+    "BK0501": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 15.928571428571429
+    },
+    "BK0502": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 13,
+      "walkableInstitutions": 31.615384615384617
+    },
+    "BK0503": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 18.714285714285715
+    },
+    "BK0504": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 4,
+      "walkableInstitutions": 5.5
+    },
+    "BK0505": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 12,
+      "walkableInstitutions": 9.583333333333334
+    },
+    "BK0571": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 8
+    },
+    "BK0601": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 21,
+      "walkableInstitutions": 42.95238095238095
+    },
+    "BK0602": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 16,
+      "walkableInstitutions": 50.875
+    },
+    "BK0701": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 8,
+      "walkableInstitutions": 30.875
+    },
+    "BK0702": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 18,
+      "walkableInstitutions": 18.944444444444443
+    },
+    "BK0703": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 10.857142857142858
+    },
+    "BK0771": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 3
+    },
+    "BK0801": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 6,
+      "walkableInstitutions": 48.166666666666664
+    },
+    "BK0802": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 22,
+      "walkableInstitutions": 29.136363636363637
+    },
+    "BK0891": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 11
+    },
+    "BK0901": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 13,
+      "walkableInstitutions": 22.692307692307693
+    },
+    "BK0902": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 20.285714285714285
+    },
+    "BK1001": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 28,
+      "walkableInstitutions": 11.035714285714286
+    },
+    "BK1002": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 17,
+      "walkableInstitutions": 6.823529411764706
+    },
+    "BK1061": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 3
+    },
+    "BK1091": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 3
+    },
+    "BK1101": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 28,
+      "walkableInstitutions": 6.642857142857143
+    },
+    "BK1102": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 11,
+      "walkableInstitutions": 7.2727272727272725
+    },
+    "BK1103": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 16,
+      "walkableInstitutions": 7.1875
+    },
+    "BK1201": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 10,
+      "walkableInstitutions": 7.8
+    },
+    "BK1202": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 21,
+      "walkableInstitutions": 4.9523809523809526
+    },
+    "BK1203": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 10,
+      "walkableInstitutions": 20.5
+    },
+    "BK1204": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 16,
+      "walkableInstitutions": 6.25
+    },
+    "BK1301": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 7,
+      "walkableInstitutions": 7.285714285714286
+    },
+    "BK1302": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 12,
+      "walkableInstitutions": 13.416666666666666
+    },
+    "BK1303": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 8,
+      "walkableInstitutions": 12
+    },
+    "BK1391": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 8
+    },
+    "BK1401": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 18,
+      "walkableInstitutions": 22.333333333333332
+    },
+    "BK1402": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 11,
+      "walkableInstitutions": 20
+    },
+    "BK1403": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 16,
+      "walkableInstitutions": 7.5
+    },
+    "BK1501": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 18,
+      "walkableInstitutions": 7
+    },
+    "BK1502": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 15,
+      "walkableInstitutions": 5.333333333333333
+    },
+    "BK1503": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 20,
+      "walkableInstitutions": 6.55
+    },
+    "BK1601": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 10,
+      "walkableInstitutions": 27.5
+    },
+    "BK1602": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 24.428571428571427
+    },
+    "BK1701": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 11,
+      "walkableInstitutions": 16
+    },
+    "BK1702": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 9.285714285714286
+    },
+    "BK1703": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 16,
+      "walkableInstitutions": 7.5
+    },
+    "BK1704": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 9,
+      "walkableInstitutions": 8.88888888888889
+    },
+    "BK1771": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 10
+    },
+    "BK1801": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 27,
+      "walkableInstitutions": 6.333333333333333
+    },
+    "BK1802": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 19,
+      "walkableInstitutions": 7.2105263157894735
+    },
+    "BK1803": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 34,
+      "walkableInstitutions": 4.647058823529412
+    },
+    "BK1891": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 2
+    },
+    "BK1892": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 1
+    },
+    "BK1893": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 2,
+      "walkableInstitutions": 3
+    },
+    "BK5591": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 14
+    },
+    "BK5691": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 1
+    },
+    "BK5692": {
+      "shareWithAnyWithinWalk": 0,
+      "tractCount": 1,
+      "walkableInstitutions": 0
+    },
+    "BK5693": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 3
+    },
+    "BX0101": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 15,
+      "walkableInstitutions": 22.333333333333332
+    },
+    "BX0102": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 8,
+      "walkableInstitutions": 38.875
+    },
+    "BX0201": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 6,
+      "walkableInstitutions": 18.333333333333332
+    },
+    "BX0202": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 9,
+      "walkableInstitutions": 26.77777777777778
+    },
+    "BX0291": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 4
+    },
+    "BX0301": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 7,
+      "walkableInstitutions": 36.57142857142857
+    },
+    "BX0302": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 6,
+      "walkableInstitutions": 20.666666666666668
+    },
+    "BX0303": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 7,
+      "walkableInstitutions": 17.142857142857142
+    },
+    "BX0391": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 12
+    },
+    "BX0401": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 28.928571428571427
+    },
+    "BX0402": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 5,
+      "walkableInstitutions": 26.6
+    },
+    "BX0403": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 12,
+      "walkableInstitutions": 26.916666666666668
+    },
+    "BX0491": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 21
+    },
+    "BX0492": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 17
+    },
+    "BX0501": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 13,
+      "walkableInstitutions": 27.692307692307693
+    },
+    "BX0502": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 10,
+      "walkableInstitutions": 28.6
+    },
+    "BX0503": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 7,
+      "walkableInstitutions": 23.857142857142858
+    },
+    "BX0601": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 5,
+      "walkableInstitutions": 16.8
+    },
+    "BX0602": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 9,
+      "walkableInstitutions": 22
+    },
+    "BX0603": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 7,
+      "walkableInstitutions": 17.428571428571427
+    },
+    "BX0701": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 9,
+      "walkableInstitutions": 19.77777777777778
+    },
+    "BX0702": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 11,
+      "walkableInstitutions": 17.454545454545453
+    },
+    "BX0703": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 8,
+      "walkableInstitutions": 11.875
+    },
+    "BX0801": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 6,
+      "walkableInstitutions": 17.5
+    },
+    "BX0802": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 5,
+      "walkableInstitutions": 17.6
+    },
+    "BX0803": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 8.285714285714286
+    },
+    "BX0901": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 15,
+      "walkableInstitutions": 13.4
+    },
+    "BX0902": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 8,
+      "walkableInstitutions": 7
+    },
+    "BX0903": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 9,
+      "walkableInstitutions": 9.88888888888889
+    },
+    "BX0904": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 5,
+      "walkableInstitutions": 15.2
+    },
+    "BX0991": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 4
+    },
+    "BX1001": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 5,
+      "walkableInstitutions": 13.2
+    },
+    "BX1002": {
+      "shareWithAnyWithinWalk": 0.9285714285714286,
+      "tractCount": 14,
+      "walkableInstitutions": 2.4285714285714284
+    },
+    "BX1003": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 6,
+      "walkableInstitutions": 4
+    },
+    "BX1004": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 7,
+      "walkableInstitutions": 3.142857142857143
+    },
+    "BX1071": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 1
+    },
+    "BX1091": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 1
+    },
+    "BX1101": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 9,
+      "walkableInstitutions": 7.666666666666667
+    },
+    "BX1102": {
+      "shareWithAnyWithinWalk": 0.9,
+      "tractCount": 10,
+      "walkableInstitutions": 6.5
+    },
+    "BX1103": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 10,
+      "walkableInstitutions": 3.8
+    },
+    "BX1104": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 9,
+      "walkableInstitutions": 8.333333333333334
+    },
+    "BX1161": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 2
+    },
+    "BX1201": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 20,
+      "walkableInstitutions": 6.8
+    },
+    "BX1202": {
+      "shareWithAnyWithinWalk": 0.9166666666666666,
+      "tractCount": 12,
+      "walkableInstitutions": 4.333333333333333
+    },
+    "BX1203": {
+      "shareWithAnyWithinWalk": 0.9375,
+      "tractCount": 16,
+      "walkableInstitutions": 2.9375
+    },
+    "BX1271": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 1
+    },
+    "BX2691": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 2
+    },
+    "BX2791": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 3
+    },
+    "BX2891": {
+      "shareWithAnyWithinWalk": 0,
+      "tractCount": 2,
+      "walkableInstitutions": 0
+    },
+    "MN0101": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 7,
+      "walkableInstitutions": 126.14285714285714
+    },
+    "MN0102": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 5,
+      "walkableInstitutions": 152.4
+    },
+    "MN0191": {
+      "shareWithAnyWithinWalk": 0.6666666666666666,
+      "tractCount": 3,
+      "walkableInstitutions": 34.333333333333336
+    },
+    "MN0201": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 6,
+      "walkableInstitutions": 187
+    },
+    "MN0202": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 7,
+      "walkableInstitutions": 216.71428571428572
+    },
+    "MN0203": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 7,
+      "walkableInstitutions": 113.42857142857143
+    },
+    "MN0301": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 7,
+      "walkableInstitutions": 100.85714285714286
+    },
+    "MN0302": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 10,
+      "walkableInstitutions": 121.9
+    },
+    "MN0303": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 170.14285714285714
+    },
+    "MN0401": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 13,
+      "walkableInstitutions": 126.92307692307692
+    },
+    "MN0402": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 10,
+      "walkableInstitutions": 127.5
+    },
+    "MN0501": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 8,
+      "walkableInstitutions": 236
+    },
+    "MN0502": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 216.92857142857142
+    },
+    "MN0601": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 2,
+      "walkableInstitutions": 43
+    },
+    "MN0602": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 4,
+      "walkableInstitutions": 146.25
+    },
+    "MN0603": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 9,
+      "walkableInstitutions": 120.55555555555556
+    },
+    "MN0604": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 10,
+      "walkableInstitutions": 134
+    },
+    "MN0661": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 84
+    },
+    "MN0701": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 11,
+      "walkableInstitutions": 106.81818181818181
+    },
+    "MN0702": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 12,
+      "walkableInstitutions": 84.91666666666667
+    },
+    "MN0703": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 6,
+      "walkableInstitutions": 86.16666666666667
+    },
+    "MN0801": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 68.64285714285714
+    },
+    "MN0802": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 87.71428571428571
+    },
+    "MN0803": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 67.85714285714286
+    },
+    "MN0901": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 8,
+      "walkableInstitutions": 77.375
+    },
+    "MN0902": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 5,
+      "walkableInstitutions": 56.6
+    },
+    "MN0903": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 7,
+      "walkableInstitutions": 60.857142857142854
+    },
+    "MN1001": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 10,
+      "walkableInstitutions": 95.2
+    },
+    "MN1002": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 15,
+      "walkableInstitutions": 84.53333333333333
+    },
+    "MN1101": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 11,
+      "walkableInstitutions": 71.0909090909091
+    },
+    "MN1102": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 12,
+      "walkableInstitutions": 61.916666666666664
+    },
+    "MN1191": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 5
+    },
+    "MN1201": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 11,
+      "walkableInstitutions": 40.81818181818182
+    },
+    "MN1202": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 12,
+      "walkableInstitutions": 42.666666666666664
+    },
+    "MN1203": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 6,
+      "walkableInstitutions": 31.666666666666668
+    },
+    "MN1291": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 40
+    },
+    "MN1292": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 23
+    },
+    "MN6491": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 47
+    },
+    "QN0101": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 17,
+      "walkableInstitutions": 13.941176470588236
+    },
+    "QN0102": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 6,
+      "walkableInstitutions": 17.333333333333332
+    },
+    "QN0103": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 11,
+      "walkableInstitutions": 18.90909090909091
+    },
+    "QN0104": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 15.785714285714286
+    },
+    "QN0105": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 12,
+      "walkableInstitutions": 18.583333333333332
+    },
+    "QN0151": {
+      "shareWithAnyWithinWalk": 0,
+      "tractCount": 1,
+      "walkableInstitutions": 0
+    },
+    "QN0161": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 22
+    },
+    "QN0171": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 6
+    },
+    "QN0191": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 17
+    },
+    "QN0201": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 9,
+      "walkableInstitutions": 26.88888888888889
+    },
+    "QN0202": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 18,
+      "walkableInstitutions": 14.61111111111111
+    },
+    "QN0203": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 22.714285714285715
+    },
+    "QN0261": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 18
+    },
+    "QN0271": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 2
+    },
+    "QN0301": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 20,
+      "walkableInstitutions": 17.75
+    },
+    "QN0302": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 10,
+      "walkableInstitutions": 11.7
+    },
+    "QN0303": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 10,
+      "walkableInstitutions": 13.4
+    },
+    "QN0401": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 23,
+      "walkableInstitutions": 17.434782608695652
+    },
+    "QN0402": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 17,
+      "walkableInstitutions": 10.470588235294118
+    },
+    "QN0501": {
+      "shareWithAnyWithinWalk": 0.95,
+      "tractCount": 20,
+      "walkableInstitutions": 6.8
+    },
+    "QN0502": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 19,
+      "walkableInstitutions": 15.631578947368421
+    },
+    "QN0503": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 13,
+      "walkableInstitutions": 6
+    },
+    "QN0504": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 4.5
+    },
+    "QN0571": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 4
+    },
+    "QN0572": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 6
+    },
+    "QN0573": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 4
+    },
+    "QN0574": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 4
+    },
+    "QN0601": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 8,
+      "walkableInstitutions": 10.5
+    },
+    "QN0602": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 24,
+      "walkableInstitutions": 9.708333333333334
+    },
+    "QN0701": {
+      "shareWithAnyWithinWalk": 0.8571428571428571,
+      "tractCount": 7,
+      "walkableInstitutions": 5.428571428571429
+    },
+    "QN0702": {
+      "shareWithAnyWithinWalk": 0.8571428571428571,
+      "tractCount": 7,
+      "walkableInstitutions": 2
+    },
+    "QN0703": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 5,
+      "walkableInstitutions": 3.4
+    },
+    "QN0704": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 15,
+      "walkableInstitutions": 8.6
+    },
+    "QN0705": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 6.857142857142857
+    },
+    "QN0706": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 5,
+      "walkableInstitutions": 3.2
+    },
+    "QN0707": {
+      "shareWithAnyWithinWalk": 0.9285714285714286,
+      "tractCount": 14,
+      "walkableInstitutions": 18.5
+    },
+    "QN0761": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 2
+    },
+    "QN0791": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 1
+    },
+    "QN0801": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 8,
+      "walkableInstitutions": 6.125
+    },
+    "QN0802": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 8,
+      "walkableInstitutions": 5.5
+    },
+    "QN0803": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 6,
+      "walkableInstitutions": 5.333333333333333
+    },
+    "QN0804": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 8,
+      "walkableInstitutions": 3
+    },
+    "QN0805": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 10,
+      "walkableInstitutions": 7.1
+    },
+    "QN0871": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 2
+    },
+    "QN0891": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 1
+    },
+    "QN0901": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 9,
+      "walkableInstitutions": 10.777777777777779
+    },
+    "QN0902": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 13,
+      "walkableInstitutions": 9
+    },
+    "QN0903": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 9,
+      "walkableInstitutions": 3.7777777777777777
+    },
+    "QN0904": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 10,
+      "walkableInstitutions": 4.1
+    },
+    "QN0905": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 13,
+      "walkableInstitutions": 5
+    },
+    "QN1001": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 25,
+      "walkableInstitutions": 3.12
+    },
+    "QN1002": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 7,
+      "walkableInstitutions": 5
+    },
+    "QN1003": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 4,
+      "walkableInstitutions": 3
+    },
+    "QN1091": {
+      "shareWithAnyWithinWalk": 0,
+      "tractCount": 1,
+      "walkableInstitutions": 0
+    },
+    "QN1101": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 13,
+      "walkableInstitutions": 4.615384615384615
+    },
+    "QN1102": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 13,
+      "walkableInstitutions": 3.8461538461538463
+    },
+    "QN1103": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 6,
+      "walkableInstitutions": 5.666666666666667
+    },
+    "QN1104": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 5,
+      "walkableInstitutions": 5
+    },
+    "QN1191": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 3
+    },
+    "QN1201": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 15,
+      "walkableInstitutions": 14.2
+    },
+    "QN1202": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 14,
+      "walkableInstitutions": 9.142857142857142
+    },
+    "QN1203": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 20,
+      "walkableInstitutions": 5.3
+    },
+    "QN1204": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 6,
+      "walkableInstitutions": 5.333333333333333
+    },
+    "QN1205": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 23,
+      "walkableInstitutions": 8.347826086956522
+    },
+    "QN1206": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 10,
+      "walkableInstitutions": 3.5
+    },
+    "QN1301": {
+      "shareWithAnyWithinWalk": 0.6666666666666666,
+      "tractCount": 6,
+      "walkableInstitutions": 2.5
+    },
+    "QN1302": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 6,
+      "walkableInstitutions": 2.6666666666666665
+    },
+    "QN1303": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 20,
+      "walkableInstitutions": 2.5
+    },
+    "QN1304": {
+      "shareWithAnyWithinWalk": 0.9230769230769231,
+      "tractCount": 13,
+      "walkableInstitutions": 2.230769230769231
+    },
+    "QN1305": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 11,
+      "walkableInstitutions": 2.727272727272727
+    },
+    "QN1306": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 7,
+      "walkableInstitutions": 2
+    },
+    "QN1307": {
+      "shareWithAnyWithinWalk": 0.5,
+      "tractCount": 8,
+      "walkableInstitutions": 1
+    },
+    "QN1371": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 3
+    },
+    "QN1401": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 11,
+      "walkableInstitutions": 9.545454545454545
+    },
+    "QN1402": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 9,
+      "walkableInstitutions": 7.444444444444445
+    },
+    "QN1403": {
+      "shareWithAnyWithinWalk": 0.8571428571428571,
+      "tractCount": 7,
+      "walkableInstitutions": 3.2857142857142856
+    },
+    "QN1491": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 4
+    },
+    "QN8081": {
+      "shareWithAnyWithinWalk": 0,
+      "tractCount": 1,
+      "walkableInstitutions": 0
+    },
+    "QN8191": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 3
+    },
+    "QN8291": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 6
+    },
+    "QN8381": {
+      "shareWithAnyWithinWalk": 0,
+      "tractCount": 1,
+      "walkableInstitutions": 0
+    },
+    "QN8491": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 2
+    },
+    "QN8492": {
+      "shareWithAnyWithinWalk": 0.6666666666666666,
+      "tractCount": 3,
+      "walkableInstitutions": 0.6666666666666666
+    },
+    "SI0101": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 6,
+      "walkableInstitutions": 18.833333333333332
+    },
+    "SI0102": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 5,
+      "walkableInstitutions": 15.4
+    },
+    "SI0103": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 7,
+      "walkableInstitutions": 8.285714285714286
+    },
+    "SI0104": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 12,
+      "walkableInstitutions": 8.083333333333334
+    },
+    "SI0105": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 8,
+      "walkableInstitutions": 4.5
+    },
+    "SI0106": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 6,
+      "walkableInstitutions": 7.5
+    },
+    "SI0107": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 8,
+      "walkableInstitutions": 4.625
+    },
+    "SI0191": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 14
+    },
+    "SI0201": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 9,
+      "walkableInstitutions": 3.5555555555555554
+    },
+    "SI0202": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 6,
+      "walkableInstitutions": 3
+    },
+    "SI0203": {
+      "shareWithAnyWithinWalk": 0.8888888888888888,
+      "tractCount": 9,
+      "walkableInstitutions": 3
+    },
+    "SI0204": {
+      "shareWithAnyWithinWalk": 0.6666666666666666,
+      "tractCount": 9,
+      "walkableInstitutions": 1.6666666666666667
+    },
+    "SI0291": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 1
+    },
+    "SI0301": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 5,
+      "walkableInstitutions": 2
+    },
+    "SI0302": {
+      "shareWithAnyWithinWalk": 0.9090909090909091,
+      "tractCount": 11,
+      "walkableInstitutions": 2.8181818181818183
+    },
+    "SI0303": {
+      "shareWithAnyWithinWalk": 0.8571428571428571,
+      "tractCount": 7,
+      "walkableInstitutions": 1.8571428571428572
+    },
+    "SI0304": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 7,
+      "walkableInstitutions": 4.142857142857143
+    },
+    "SI0305": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 4,
+      "walkableInstitutions": 2.25
+    },
+    "SI0391": {
+      "shareWithAnyWithinWalk": 0,
+      "tractCount": 1,
+      "walkableInstitutions": 0
+    },
+    "SI9561": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 2
+    },
+    "SI9591": {
+      "shareWithAnyWithinWalk": 0,
+      "tractCount": 1,
+      "walkableInstitutions": 0
+    },
+    "SI9592": {
+      "shareWithAnyWithinWalk": 1,
+      "tractCount": 1,
+      "walkableInstitutions": 2
+    },
+    "SI9593": {
+      "shareWithAnyWithinWalk": 0,
+      "tractCount": 1,
+      "walkableInstitutions": 0
+    }
+  },
+  "radiusMetres": 800
+}

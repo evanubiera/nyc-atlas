@@ -24,6 +24,8 @@ export interface RowInputs {
   exposure: ExposureMeasure;
   demographicsAvailable: boolean;
   isEnforcementDriven: boolean;
+  /** Population-weighted institutions within 800 m; null when unmeasured. */
+  walkableInstitutions?: number | null;
 }
 
 /**
@@ -112,6 +114,22 @@ function amenityFields(
   };
 }
 
+/**
+ * ACCESS is a different question from either density or per-resident count:
+ * how many institutions are within walking distance of where people live. It
+ * previously fell through to density, so choosing it silently showed the
+ * wrong measure. Without the walkability file it reports null rather than
+ * substituting a number that answers something else.
+ */
+function exposureValueFor(
+  inputs: RowInputs,
+  exposure: { per10k: number | null; perSqKm: number },
+  usePerCapita: boolean,
+): number | null {
+  if (inputs.exposure === 'ACCESS') return inputs.walkableInstitutions ?? null;
+  return usePerCapita ? exposure.per10k : exposure.perSqKm;
+}
+
 export function buildNeighborhoodRow(inputs: RowInputs): NeighborhoodRow {
   const { record, demographics, amenities, incidentCount, institutionCount } = inputs;
   const population = demographics?.population ?? null;
@@ -127,7 +145,7 @@ export function buildNeighborhoodRow(inputs: RowInputs): NeighborhoodRow {
   );
 
   const usePerCapitaExposure =
-    inputs.exposure !== 'DENSITY' && inputs.demographicsAvailable;
+    inputs.exposure === 'PER_CAPITA' && inputs.demographicsAvailable;
   const fallbackRate = inputs.demographicsAvailable ? null : countPerSqKm;
 
   return {
@@ -150,7 +168,7 @@ export function buildNeighborhoodRow(inputs: RowInputs): NeighborhoodRow {
     institutionCount,
     institutionsPerSqKm: exposure.perSqKm,
     institutionsPer10k: exposure.per10k,
-    exposureValue: usePerCapitaExposure ? exposure.per10k : exposure.perSqKm,
+    exposureValue: exposureValueFor(inputs, exposure, usePerCapitaExposure),
     residual: null,
     medianHouseholdIncome: demographics?.medianHouseholdIncome ?? null,
     povertyRate: demographics?.povertyRate ?? null,

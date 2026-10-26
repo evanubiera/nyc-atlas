@@ -117,6 +117,18 @@ export const DATASETS = {
       'spatially joined to 2020 NTAs instead. 2019-20 is the newest published vintage; 97.4% of ' +
       'schools with 2024 quality data match, the rest being mostly post-2020 charters.',
   },
+  censusTracts: {
+    id: '63ge-mke6',
+    name: '2020 Census Tracts',
+    purpose:
+      'Tract geometry for walkable access. Carries nta2020 directly, so no crosswalk is ' +
+      'needed to roll tract-level reach up to a neighborhood.',
+    requiredFields: ['the_geom', 'geoid', 'nta2020', 'boroname'],
+    notes:
+      'Used only for centroids. Walkable access is measured around where people live ' +
+      'rather than around the neighborhood as a whole.',
+  },
+
   tractToNta: {
     id: 'hm78-6dwm',
     name: '2020 Census Tracts to 2020 NTAs and CDTAs Equivalency',

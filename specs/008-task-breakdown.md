@@ -33,7 +33,7 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 - [x] 2.2 Exclusion rules: `ntatype != '0'`, population < 1,000, missing demographics
 - [x] 2.3 Empirical-Bayes shrinkage toward borough mean
 - [x] 2.4 Poisson confidence intervals
-- [ ] 2.5 Walkable-access exposure from tract centroids, 800 m
+- [x] 2.5 Walkable-access exposure from tract centroids, 800 m
 - [ ] 2.6 Daytime-population flagging for distorted denominators
 - [x] 2.7 Partial correlation adjusting for the confounder set
 - [x] 2.8 Quintile analysis with CIs

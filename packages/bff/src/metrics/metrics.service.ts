@@ -17,6 +17,7 @@ import {
   type IncidentCache,
   type InstitutionCache,
   type QualityReport,
+  type WalkabilityCache,
 } from '../ingest/ingest.types.js';
 import type { NtaDemographics } from '../census/census.service.js';
 import type { UnifiedInstitution } from '../institutions/institutions.service.js';
@@ -97,6 +98,7 @@ export class MetricsService implements OnModuleInit {
   private demographics: DemographicsCache | null = null;
   private amenities: AmenitiesCache | null = null;
   private quality: QualityReport | null = null;
+  private walkability: WalkabilityCache | null = null;
 
   /**
    * 15 minutes, per specs/008 §3.3. The cap is generous next to the real query
@@ -126,6 +128,7 @@ export class MetricsService implements OnModuleInit {
     this.demographics = await this.cache.read<DemographicsCache>(CACHE_FILES.demographics);
     this.amenities = await this.cache.read<AmenitiesCache>(CACHE_FILES.amenities);
     this.quality = await this.cache.read<QualityReport>(CACHE_FILES.quality);
+    this.walkability = await this.cache.read<WalkabilityCache>(CACHE_FILES.walkability);
 
     if (this.incidents === null) {
       this.logger.warn('No ingest cache found — run `npm run ingest`. Metrics will be empty.');
@@ -195,6 +198,8 @@ export class MetricsService implements OnModuleInit {
     const caveats = collectComputeCaveats(query.category, {
       amenitiesAvailable: this.amenitiesAvailable,
       demographicsAvailable,
+      walkabilityAvailable: this.walkability?.available === true,
+      exposure: query.exposure,
     });
 
     const institutionCounts = countInstitutionsByNeighborhood(this.getInstitutions(query.scope));
@@ -215,6 +220,8 @@ export class MetricsService implements OnModuleInit {
         exposure: query.exposure,
         demographicsAvailable,
         isEnforcementDriven,
+        walkableInstitutions:
+          this.walkability?.byNta[record.nta2020]?.walkableInstitutions ?? null,
       }),
     );
 

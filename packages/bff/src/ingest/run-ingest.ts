@@ -16,6 +16,7 @@ async function main(): Promise<void> {
   const logger = new Logger('ingest');
   const includeHistoric = process.argv.includes('--historic');
   const provenanceOnly = process.argv.includes('--provenance-only');
+  const walkabilityOnly = process.argv.includes('--walkability-only');
 
   const app = await NestFactory.createApplicationContext(AppModule, {
     logger: ['log', 'warn', 'error'],
@@ -25,6 +26,8 @@ async function main(): Promise<void> {
     const ingest = app.get(IngestService);
     if (provenanceOnly) {
       await ingest.refreshProvenance();
+    } else if (walkabilityOnly) {
+      await ingest.refreshWalkability();
     } else {
       await ingest.run({ includeHistoric });
     }
