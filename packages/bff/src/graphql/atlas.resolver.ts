@@ -5,6 +5,7 @@ import { GeographyService, type NtaRecord } from '../geography/geography.service
 import { AppConfig } from '../config/configuration.js';
 import { Exclusion, ExclusionKind, Neighborhood } from './models/neighborhood.model.js';
 import { Capabilities, DatasetProvenance, Provenance } from './models/provenance.model.js';
+import { ProvenanceService } from './provenance.service.js';
 
 const ATTRIBUTION =
   'Data: NYC Open Data (NYPD, DCLA, DCP) and U.S. Census Bureau ACS. ' +
@@ -19,6 +20,7 @@ export class AtlasResolver {
   constructor(
     private readonly geography: GeographyService,
     private readonly config: AppConfig,
+    private readonly provenanceCache: ProvenanceService,
   ) {}
 
   @Query(() => [Neighborhood], {
@@ -106,14 +108,17 @@ export class AtlasResolver {
 
   @Query(() => Provenance, { description: 'Data lineage. Required by specs/001 FR-4.2.' })
   provenance(): Provenance {
-    const datasets: DatasetProvenance[] = Object.values(DATASETS).map((ds) => ({
-      id: ds.id,
-      name: ds.name,
-      purpose: ds.purpose,
-      rowsUpdatedAt: null,
-      rowCount: null,
-      notes: 'notes' in ds ? (ds.notes ?? null) : null,
-    }));
+    const datasets: DatasetProvenance[] = Object.values(DATASETS).map((ds) => {
+      const freshness = this.provenanceCache.freshnessOf(ds.id);
+      return {
+        id: ds.id,
+        name: ds.name,
+        purpose: ds.purpose,
+        rowsUpdatedAt: freshness.rowsUpdatedAt,
+        rowCount: freshness.rowCount,
+        notes: 'notes' in ds ? (ds.notes ?? null) : null,
+      };
+    });
 
     return {
       datasets,

@@ -19,7 +19,16 @@ const PROVENANCE: ProvenanceData = {
   ingestVersion: '2026-10-25',
   attribution: 'Source: NYC Open Data. Associations only.',
   warnings: [],
-  datasets: [{ id: '5ucz-vwe8', name: 'NYPD Shooting Incidents', purpose: 'outcome', notes: null }],
+  datasets: [
+    {
+      id: '5ucz-vwe8',
+      name: 'NYPD Shooting Incidents',
+      purpose: 'outcome',
+      notes: null,
+      rowsUpdatedAt: '2026-07-27T15:45:36.000Z',
+      rowCount: 24310,
+    },
+  ],
 };
 
 function row(overrides: Partial<NeighborhoodMetric> = {}): NeighborhoodMetric {

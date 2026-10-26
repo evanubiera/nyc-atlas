@@ -17,7 +17,9 @@ import {
   type DemographicsCache,
   type IncidentCache,
   type InstitutionCache,
+  type ProvenanceCache,
 } from './ingest.types.js';
+import { SocrataService } from '../socrata/socrata.service.js';
 
 export interface IngestOptions {
   /** Include the 2006-2019 historic complaint set (millions of rows). */
@@ -55,6 +57,7 @@ export class IngestService {
     private readonly census: CensusService,
     private readonly amenities: AmenitiesService,
     private readonly cache: CacheService,
+    private readonly socrata: SocrataService,
   ) {}
 
   async run(options: IngestOptions = {}): Promise<void> {
@@ -67,6 +70,7 @@ export class IngestService {
     await this.ingestInstitutions(tally);
     await this.ingestAmenities(tally);
     await this.ingestDemographics(tally);
+    await this.recordProvenance();
 
     if (tally.coordinatesRepaired > 0) {
       tally.note(transposedCoordinatesNote(tally.coordinatesRepaired));
@@ -157,6 +161,55 @@ export class IngestService {
     } catch (err) {
       this.logger.error(`ACS fetch failed: ${String(err)}`);
       return { byNta: {}, available: false, unavailableReason: `ACS fetch failed: ${String(err)}` };
+    }
+  }
+
+  /**
+   * Upstream freshness for each Socrata dataset, written to its own file.
+   *
+   * Best-effort by design: this is a transparency sidecar, not an input to any
+   * figure, so one unreachable dataset records nulls rather than failing a run
+   * that has already written every cache (specs/008 §3.4).
+   */
+  async refreshProvenance(): Promise<void> {
+    await this.recordProvenance();
+    this.logger.log(`Wrote ${CACHE_FILES.provenance}`);
+  }
+
+  private async recordProvenance(): Promise<void> {
+    const datasets: ProvenanceCache['datasets'] = {};
+
+    for (const descriptor of Object.values(DATASETS)) {
+      const domain = 'domain' in descriptor ? descriptor.domain : undefined;
+      datasets[descriptor.id] = {
+        rowsUpdatedAt: await this.rowsUpdatedAt(descriptor.id, domain),
+        rowCount: await this.rowCount(descriptor.id, domain),
+      };
+    }
+
+    await this.cache.write(CACHE_FILES.provenance, {
+      generatedAt: new Date().toISOString(),
+      datasets,
+    } satisfies ProvenanceCache);
+  }
+
+  private async rowsUpdatedAt(id: string, domain: string | undefined): Promise<string | null> {
+    try {
+      const meta = await this.socrata.metadata(id, domain);
+      // Socrata reports this as epoch seconds.
+      return meta.rowsUpdatedAt ? new Date(meta.rowsUpdatedAt * 1000).toISOString() : null;
+    } catch (err) {
+      this.logger.warn(`No metadata for ${id}: ${String(err)}`);
+      return null;
+    }
+  }
+
+  private async rowCount(id: string, domain: string | undefined): Promise<number | null> {
+    try {
+      return await this.socrata.count(id, undefined, domain);
+    } catch (err) {
+      this.logger.warn(`No row count for ${id}: ${String(err)}`);
+      return null;
     }
   }
 

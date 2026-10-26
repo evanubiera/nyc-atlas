@@ -1,0 +1,393 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type AccessGapGroup {
+  """A few neighborhoods from the group, largest first."""
+  examples: [String!]!
+  institutionsPer10k: Float
+  neighborhoodCount: Int!
+  population: Int!
+}
+
+"""One socioeconomic measure, contrasted across the two groups."""
+type AccessGapMeasure {
+  """True when a larger number is better for a resident."""
+  higherIsBetter: Boolean!
+
+  """Pooled value in the best-served fifth."""
+  highest: Float
+  key: String!
+  label: String!
+
+  """Pooled value in the least-served fifth."""
+  lowest: Float
+
+  """How this number was pooled, and what it does not say."""
+  note: String!
+
+  """
+  highest / lowest. Null when either side is missing or the floor is zero.
+  """
+  ratio: Float
+  unit: GapUnit!
+}
+
+"""
+The fifth of neighborhoods with the least cultural access set against the fifth with the most, on income, groceries, schools and healthcare. Figures are pooled across each group, not averaged across its neighborhoods.
+"""
+type AccessGapsPayload {
+  amenitiesAvailable: Boolean!
+  caveats: [String!]!
+  demographicsAvailable: Boolean!
+
+  """What the neighborhoods were ranked on."""
+  exposureLabel: String!
+  least: AccessGapGroup!
+  measures: [AccessGapMeasure!]!
+  most: AccessGapGroup!
+}
+
+"""
+Runtime capability report — what is available with current credentials.
+"""
+type Capabilities {
+  """
+  False when CENSUS_API_KEY is unset; demographic features degrade to cache.
+  """
+  censusApiAvailable: Boolean!
+  degradedFeatures: [String!]!
+  geographyLoaded: Boolean!
+  neighborhoodCount: Int!
+  residentialNeighborhoodCount: Int!
+
+  """True when SOCRATA_APP_TOKEN raises rate limits."""
+  socrataTokenConfigured: Boolean!
+}
+
+type CorrelationPayload {
+  adjusted: Float
+  confounders: [String!]!
+
+  """Required. Association, never causation."""
+  interpretation: String!
+  modelRSquared: Float
+  n: Int!
+  raw: Float!
+}
+
+enum CrimeCategory {
+  ADMINISTRATIVE
+  DISORDER
+  DRUGS
+  FRAUD
+  PROPERTY
+  SHOOTING
+  TRAFFIC
+  UNKNOWN
+  VIOLENT_PERSON
+  VIOLENT_PROPERTY
+  WEAPONS
+}
+
+"""Where a single upstream dataset came from and when."""
+type DatasetProvenance {
+  """Socrata dataset id, e.g. 5ucz-vwe8."""
+  id: String!
+  name: String!
+  notes: String
+  purpose: String!
+  rowCount: Int
+  rowsUpdatedAt: String
+}
+
+"""ACS demographics aggregated from census tracts to the 2020 NTA."""
+type Demographics {
+  acsVintage: String!
+  contributingTracts: Int!
+  medianHouseholdIncome: Float
+
+  """
+  Always true. Medians cannot be summed across tracts, so this is a population-weighted mean of tract medians.
+  """
+  medianIncomeIsApproximated: Boolean!
+  ownerOccupancyRate: Float
+  population: Int!
+  populationDensityPerSqKm: Float!
+  povertyRate: Float
+  shareAged15to24: Float
+}
+
+"""Why a neighborhood carries no rate. Rendered, never silently dropped."""
+type Exclusion {
+  explanation: String!
+  kind: ExclusionKind!
+
+  """ntatype for NON_RESIDENTIAL exclusions."""
+  ntatype: String
+
+  """Population for LOW_POPULATION exclusions."""
+  population: Int
+}
+
+"""
+Why a neighborhood is omitted from rate displays, while still being rendered.
+"""
+enum ExclusionKind {
+  LOW_POPULATION
+  NON_RESIDENTIAL
+  NO_DEMOGRAPHICS
+}
+
+type ExclusionNote {
+  explanation: String!
+  kind: String!
+}
+
+enum ExposureMeasure {
+  ACCESS
+  DENSITY
+  PER_CAPITA
+}
+
+"""
+How a gap measure should be formatted: dollars, a count per 10,000, or a share.
+"""
+enum GapUnit {
+  PER_10K
+  SHARE
+  USD
+}
+
+type InstitutionPoint {
+  discipline: String
+  facilitySubgroup: String
+
+  """
+  FacDB factype. Preferred over facilitySubgroup for display: 83% of cultural facilities share the subgroup OTHER CULTURAL INSTITUTIONS.
+  """
+  facilityType: String
+  id: String!
+  lat: Float!
+  lon: Float!
+  name: String!
+  nta2020: String
+  scope: String!
+  source: String!
+}
+
+enum InstitutionScope {
+  BROAD
+  NARROW
+  STANDARD
+}
+
+input MetricsInput {
+  boroughCodes: [Int!]
+  category: CrimeCategory! = SHOOTING
+  exposure: ExposureMeasure! = PER_CAPITA
+  from: String! = "2006-01"
+  scope: InstitutionScope! = STANDARD
+  to: String! = "2100-01"
+}
+
+type MetricsPayload {
+  """Never empty when qualification is needed."""
+  caveats: [String!]!
+  demographicsAvailable: Boolean!
+  outcomeMode: OutcomeMode!
+  residualExtent: [Float!]
+  rows: [NeighborhoodMetric!]!
+  scaleBreaks: [Float!]!
+}
+
+"""A 2020 Neighborhood Tabulation Area — the analytical unit."""
+type Neighborhood {
+  boroughCode: Int!
+  boroughName: String!
+  cdta2020: String!
+
+  """[lon, lat]"""
+  centroid: [Float!]!
+  demographics: Demographics
+  exclusion: Exclusion
+
+  """True when ntatype = '0'. 197 of 262 NTAs."""
+  isResidential: Boolean!
+  landAreaSqKm: Float!
+  name: String!
+
+  """2020 NTA code, e.g. BX0101."""
+  nta2020: String!
+}
+
+"""One neighborhood, joined across crime, institutions and demographics."""
+type NeighborhoodMetric {
+  boroughCode: Int!
+  boroughName: String!
+  centroid: [Float!]!
+  confidenceInterval: [Float!]
+  excluded: ExclusionNote
+  exposureValue: Float
+
+  """Licensed food stores of any size."""
+  foodStoreCount: Int!
+
+  """Of those, how many hold the top grade."""
+  gradeAStoreCount: Int!
+
+  """Food stores carrying a current State inspection grade."""
+  gradedStoreCount: Int!
+
+  """FacDB hospitals, clinics and diagnostic & treatment centers."""
+  healthcareSiteCount: Int!
+  healthcareSitesPer10k: Float
+  institutionCount: Int!
+  institutionsPer10k: Float
+  institutionsPerSqKm: Float!
+  isEnforcementDriven: Boolean!
+  landAreaSqKm: Float!
+  medianHouseholdIncome: Float
+  name: String!
+  nta2020: String!
+  population: Int
+  povertyRate: Float
+
+  """Unsmoothed. Shown for honesty, not for color."""
+  ratePer100k: Float
+  rawCount: Int!
+
+  """
+  Observed minus predicted rate after adjusting for income, poverty, density, age and tenure. Positive means more incidents than socioeconomics alone would predict.
+  """
+  residual: Float
+
+  """Elementary/middle schools with published 2024 proficiency."""
+  schoolCount: Int!
+
+  """
+  Student-weighted share of students at NY State Level 3-4, ELA and Math pooled. Describes where a neighborhood's schools sit, not where its children go.
+  """
+  schoolProficiency: Float
+
+  """Students those schools tested — the weight behind proficiency."""
+  schoolStudents: Int!
+  shareBachelorsOrHigher: Float
+
+  """Empirical-Bayes shrunk. Drives the color scale."""
+  smoothedRatePer100k: Float
+
+  """
+  Share of graded food stores holding the top State inspection grade. A sanitation result — whether a store is clean and storing food safely — not a measure of what it sells or charges. Null where no store here has a current inspection.
+  """
+  storeGradeShare: Float
+
+  """
+  Licensed food stores of 10,000 sq ft or more — the conventional supermarket threshold. Floor area is self-reported at licensing and never audited.
+  """
+  supermarketCount: Int!
+  supermarketsPer10k: Float
+}
+
+"""
+RATE_PER_100K needs ACS population. COUNT_PER_SQKM is the fallback when no Census key is configured — a real measure, but not the same quantity.
+"""
+enum OutcomeMode {
+  COUNT_PER_SQKM
+  RATE_PER_100K
+}
+
+"""Full data lineage for a response."""
+type Provenance {
+  """
+  Required attribution. This application shows statistical associations and does not establish causation.
+  """
+  attribution: String!
+  datasets: [DatasetProvenance!]!
+  ingestVersion: String!
+  warnings: [String!]!
+}
+
+type QualityRejection {
+  count: Int!
+  dataset: String!
+  reason: String!
+}
+
+type QualityReportPayload {
+  generatedAt: String!
+  notes: [String!]!
+  recoveredViaFallback: Int!
+  rejections: [QualityRejection!]!
+  totalRowsProcessed: Int!
+  unmappedOffenses: [String!]!
+}
+
+type Query {
+  """
+  The fifth of neighborhoods with the least cultural access per resident set against the fifth with the most, on income, poverty, supermarkets, school proficiency and clinics. Figures are pooled across each group so large and small neighborhoods are not weighted alike. A description of two groups, not an effect of institutions.
+  """
+  accessGaps(input: MetricsInput!): AccessGapsPayload!
+
+  """What this deployment can actually do with its current credentials."""
+  capabilities: Capabilities!
+
+  """
+  Raw and confounder-adjusted association between cultural access and the outcome. The interpretation field is non-nullable by design.
+  """
+  correlation(input: MetricsInput!): CorrelationPayload!
+  dataQualityReport: QualityReportPayload
+
+  """Cultural institutions at the requested scope."""
+  institutions(scope: InstitutionScope! = STANDARD): [InstitutionPoint!]!
+
+  """
+  Per-neighborhood crime, cultural-institution exposure and demographics. Rates are empirical-Bayes smoothed; residuals adjust for socioeconomic confounders.
+  """
+  metrics(input: MetricsInput!): MetricsPayload!
+  neighborhood(nta2020: String!): Neighborhood
+
+  """
+  Simplified NTA geometry as a GeoJSON FeatureCollection, serialised. Raw upstream geometry is 4.38 MB; this is reduced for transport (specs/001 NFR-3).
+  """
+  neighborhoodGeometry: String!
+
+  """
+  The 2020 NTAs. Non-residential areas are included but carry an `exclusion`, so the client can render them as excluded rather than omitting them silently.
+  """
+  neighborhoods(boroughCode: Int, residentialOnly: Boolean! = false): [Neighborhood!]!
+
+  """Data lineage. Required by specs/001 FR-4.2."""
+  provenance: Provenance!
+
+  """
+  Neighborhoods binned by cultural-institution exposure, lowest to highest, with the pooled outcome rate and a Poisson interval per bin. This is the direct answer to "what is crime like where cultural institutions are absent?"
+  """
+  quintiles(input: MetricsInput!): QuintilePayload!
+
+  """
+  Resolves a coordinate to its NTA via R-tree bbox lookup plus exact point-in-polygon. Returns null for points outside every NTA, including geocoding failures such as (0,0). This is the spatial join that assigns crime incidents to neighborhoods — see specs/004.
+  """
+  resolvePoint(lat: Float!, lon: Float!): Neighborhood
+}
+
+type QuintileBucket {
+  confidenceInterval: [Float!]!
+  exposureRange: [Float!]!
+  meanOutcomeRate: Float!
+  neighborhoodCount: Int!
+  quintile: Int!
+  totalCount: Int!
+
+  """
+  The denominator for this bucket. Resident population in RATE_PER_100K mode; land area in COUNT_PER_SQKM mode, which is fractional — hence Float, not Int.
+  """
+  totalPopulation: Float!
+}
+
+type QuintilePayload {
+  buckets: [QuintileBucket!]!
+  caveats: [String!]!
+  demographicsAvailable: Boolean!
+  outcomeMode: OutcomeMode!
+}

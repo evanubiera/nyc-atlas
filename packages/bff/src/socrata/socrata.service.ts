@@ -106,15 +106,16 @@ export class SocrataService {
     }
   }
 
-  async count(datasetId: string, where?: string): Promise<number> {
+  async count(datasetId: string, where?: string, domain?: string): Promise<number> {
     const rows = await this.query<{ n: string }>(datasetId, {
       select: 'count(1) as n',
       ...(where ? { where } : {}),
+      ...(domain ? { domain } : {}),
     });
     return Number(rows[0]?.n ?? 0);
   }
 
-  async metadata(datasetId: string, domain: string = SOCRATA_DOMAIN): Promise<SocrataMetadata> {
+  async metadata(datasetId: string, domain: string | undefined = SOCRATA_DOMAIN): Promise<SocrataMetadata> {
     const url = `https://${domain}/api/views/${datasetId}.json`;
     const res = await this.fetchWithRetry(url);
     return (await res.json()) as SocrataMetadata;

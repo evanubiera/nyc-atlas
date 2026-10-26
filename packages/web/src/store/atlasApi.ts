@@ -25,7 +25,14 @@ export interface ProvenanceData {
   ingestVersion: string;
   attribution: string;
   warnings: string[];
-  datasets: { id: string; name: string; purpose: string; notes: string | null }[];
+  datasets: {
+    id: string;
+    name: string;
+    purpose: string;
+    notes: string | null;
+    rowsUpdatedAt: string | null;
+    rowCount: number | null;
+  }[];
 }
 
 export interface QualityRejection {
@@ -359,6 +366,8 @@ export const atlasApi = createApi({
                 name
                 purpose
                 notes
+                rowsUpdatedAt
+                rowCount
               }
             }
           }

@@ -2,6 +2,24 @@ import { useState } from 'react';
 import styled from 'styled-components';
 import { useCapabilitiesQuery, useProvenanceQuery } from '../../store/atlasApi.js';
 import { KNOWN_LIMITATIONS } from './limitations.tsx';
+import { formatCount } from '../../format/values.ts';
+
+/**
+ * How current a source is, as the ingest last saw it. Stated as a date rather
+ * than "2 days ago": these files update on their own schedules, and a relative
+ * age invites reading a stale file as a fresh one.
+ */
+function describeFreshness(dataset: {
+  rowsUpdatedAt: string | null;
+  rowCount: number | null;
+}): string {
+  const parts: string[] = [];
+  if (dataset.rowCount !== null) parts.push(`${formatCount(dataset.rowCount)} rows`);
+  if (dataset.rowsUpdatedAt !== null) {
+    parts.push(`upstream updated ${dataset.rowsUpdatedAt.slice(0, 10)}`);
+  }
+  return parts.length > 0 ? parts.join(' · ') : 'freshness not recorded';
+}
 
 function LimitationDetail(): JSX.Element {
   const { data: capabilities } = useCapabilitiesQuery();
@@ -36,6 +54,7 @@ function LimitationDetail(): JSX.Element {
             {provenance.datasets.map((dataset) => (
               <li key={dataset.id}>
                 <code>{dataset.id}</code> — {dataset.name}
+                <Freshness>{describeFreshness(dataset)}</Freshness>
               </li>
             ))}
           </ul>
@@ -144,6 +163,12 @@ const Detail = styled.div`
     font-size: 12px;
     color: ${({ theme }) => theme.textSecondary};
   }
+`;
+
+const Freshness = styled.span`
+  display: block;
+  color: ${({ theme }) => theme.textMuted};
+  font-variant-numeric: tabular-nums;
 `;
 
 const Attribution = styled.p`

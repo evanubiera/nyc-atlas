@@ -40,6 +40,19 @@ export interface AmenitiesCache {
   unavailableReason: string | null;
 }
 
+/**
+ * Upstream freshness, written beside the data rather than inside it.
+ *
+ * These timestamps change on every run even when the rows do not, so keeping
+ * them out of the data caches is what lets a repeated ingest stay
+ * byte-identical (NFR-11). Nothing here is required for the app to work: a
+ * dataset whose metadata could not be read simply reports nulls.
+ */
+export interface ProvenanceCache {
+  generatedAt: string;
+  datasets: Record<string, { rowsUpdatedAt: string | null; rowCount: number | null }>;
+}
+
 export interface QualityReport {
   generatedAt: string;
   totalRowsProcessed: number;
