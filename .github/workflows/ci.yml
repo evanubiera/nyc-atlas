@@ -25,11 +25,6 @@ jobs:
 
       - run: npm ci
 
-      # The schema is the single source for the client's types; a stale
-      # generated file means the contract diverged without anyone noticing.
-      - name: Check the generated GraphQL types are current
-        run: npm run check:types-fresh
-
       - name: Typecheck the monorepo
         run: npm run typecheck
 
@@ -37,6 +32,16 @@ jobs:
       # to come first; the web package runs its .ts tests straight off Node.
       - name: Build all packages
         run: npm run build
+
+      # Two halves of one chain. The first derives the schema from the resolver
+      # decorators and compares it to the committed file; the second derives the
+      # client's types from that file. Without the first, a renamed @Field would
+      # leave schema and types agreeing with each other and both wrong.
+      - name: Check schema.gql matches the resolvers
+        run: npm run check:schema-fresh
+
+      - name: Check the generated GraphQL types are current
+        run: npm run check:types-fresh
 
       - name: Run tests
         run: npm test
