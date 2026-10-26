@@ -2,10 +2,13 @@ import { useMemo, useState } from 'react';
 import {
   useInstitutionsQuery,
   useMetricsQuery,
+  useProvenanceQuery,
   type InstitutionPoint,
   type MetricsInput,
   type NeighborhoodMetric,
 } from '../../../store/atlasApi.js';
+import { downloadTextFile } from '../../../format/downloadFile.ts';
+import { csvFilename, toCsv } from './csvExport.ts';
 import { labelFor, TABLE_COLUMNS } from './columns.ts';
 import { groupInstitutionsByNeighborhood } from './institutions.ts';
 import { NeighborhoodMetricRow } from './NeighborhoodMetricRow.tsx';
@@ -17,23 +20,51 @@ import {
   type SortKey,
   type SortState,
 } from './sorting.ts';
-import { Caption, Count, Empty, Head, Scroller, Table, Wrap } from './tableStyles.ts';
+import {
+  Caption,
+  Count,
+  Empty,
+  ExportButton,
+  Head,
+  HeadActions,
+  Scroller,
+  Table,
+  Wrap,
+} from './tableStyles.ts';
 
 const INITIAL_SORT: SortState = { key: 'institutionCount', descending: true };
 
 function TableCaption({
   rowCount,
   sort,
+  onExport,
+  canExport,
 }: {
   rowCount: number;
   sort: SortState;
+  onExport: () => void;
+  canExport: boolean;
 }): JSX.Element {
   return (
     <Head>
       <Caption>Every neighborhood</Caption>
-      <Count>
-        {rowCount} with a usable rate · sorted by {labelFor(sort.key).toLowerCase()}
-      </Count>
+      <HeadActions>
+        <Count>
+          {rowCount} with a usable rate · sorted by {labelFor(sort.key).toLowerCase()}
+        </Count>
+        <ExportButton
+          type="button"
+          onClick={onExport}
+          disabled={!canExport}
+          title={
+            canExport
+              ? 'Download these rows as CSV, with their sources and the association caveat'
+              : 'Waiting for the data and its provenance — an export without attribution is not offered'
+          }
+        >
+          Export CSV
+        </ExportButton>
+      </HeadActions>
     </Head>
   );
 }
@@ -75,6 +106,7 @@ function TableBody({
 export function NeighborhoodTable({ input }: { input: MetricsInput }): JSX.Element {
   const { data } = useMetricsQuery(input);
   const { data: institutions } = useInstitutionsQuery({ scope: input.scope });
+  const { data: provenance } = useProvenanceQuery();
 
   const [sort, setSort] = useState<SortState>(INITIAL_SORT);
   const [expandedNta, setExpandedNta] = useState<string | null>(null);
@@ -89,13 +121,29 @@ export function NeighborhoodTable({ input }: { input: MetricsInput }): JSX.Eleme
     [data?.rows, sort],
   );
 
+  /**
+   * Attribution is not optional, so the export waits for provenance rather
+   * than shipping a file that cannot say where its numbers came from.
+   */
+  const handleExport = (): void => {
+    if (rows.length === 0 || !provenance) return;
+    const generatedAt = new Date();
+    const csv = toCsv(rows, { input, provenance, generatedAt, rowCount: rows.length });
+    downloadTextFile(csvFilename(input, generatedAt), csv, 'text/csv');
+  };
+
   const handleSort = (key: SortKey): void => setSort((current) => nextSortState(current, key));
   const toggleExpanded = (nta2020: string): void =>
     setExpandedNta((current) => (current === nta2020 ? null : nta2020));
 
   return (
     <Wrap>
-      <TableCaption rowCount={rows.length} sort={sort} />
+      <TableCaption
+        rowCount={rows.length}
+        sort={sort}
+        onExport={handleExport}
+        canExport={rows.length > 0 && provenance !== undefined}
+      />
 
       <Scroller>
         <Table>

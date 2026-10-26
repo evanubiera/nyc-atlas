@@ -228,3 +228,29 @@ export const Empty = styled.p`
   font-size: 12px;
   color: ${({ theme }) => theme.textMuted};
 `;
+
+export const HeadActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.space(2)};
+`;
+
+export const ExportButton = styled.button`
+  padding: 3px 8px;
+  background: none;
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  font: inherit;
+  font-size: 11px;
+  color: ${({ theme }) => theme.textPrimary};
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: ${({ theme }) => theme.gridline};
+  }
+
+  &:disabled {
+    color: ${({ theme }) => theme.textMuted};
+    cursor: default;
+  }
+`;

@@ -71,7 +71,7 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 - [x] 6.2 Quintile bar chart with CI whiskers
 - [x] 6.3 Bivariate choropleth + 2D legend
 - [x] 6.4 Residual (diverging) map after confounder adjustment
-- [~] 6.5 Rank table, sortable — done; **CSV export with attribution still to do**
+- [x] 6.5 Rank table, sortable, with CSV export
 - [x] 6.6 Table view — `NeighborhoodTable` is standing rather than behind a toggle
 - [x] 6.7 Access-gap dumbbell panel, one scale per measure, validated shade pair
 - [x] 6.8 Institution disclosure: count expands in place to the venues behind it
@@ -80,12 +80,12 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 - [x] 7.1 Persistent, non-dismissible limitations panel from 007
 - [ ] 7.2 Per-NTA provenance display
 - [ ] 7.3 Quality report surfaced in the UI
-- [ ] 7.4 Attribution on every export
+- [x] 7.4 Attribution on every export — sources and the causation caveat ride in the file
 - [ ] 7.5 Enforcement-driven category caveats inline
 
 ## Phase 8 — Hardening
 - [x] 8.1 Unit tests — category mapping (74 values), PIP landmarks, rate math, EB shrinkage, and pooled group figures (36 tests)
-- [ ] 8.2 Build fails on an unmapped offense code
+- [x] 8.2 Ingest fails on an unmapped offense code, rather than writing UNKNOWN
 - [ ] 8.3 Determinism test: ingest twice, diff byte-for-byte
 - [ ] 8.4 Performance: 60 fps with choropleth + 50k points
 - [x] 8.5 Geometry payload budget check in CI — `check-bundle-budget.mjs`, geometry and bundle
