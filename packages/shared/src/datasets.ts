@@ -1,6 +1,6 @@
 /**
- * Dataset registry. Every id, field name and row count below was verified
- * live against the Socrata API on 2026-10-24 by `npm run verify:sources`.
+ * Every id, field name and row count below was verified live against the
+ * Socrata API on 2026-10-24 by `npm run verify:sources`.
  * See specs/002-data-sources.md.
  */
 
@@ -160,8 +160,6 @@ export const ACS_VARIABLES = {
 
 export const CENSUS_KEY_SIGNUP_URL = 'https://api.census.gov/data/key_signup.html';
 
-// --- Amenity access definitions ---------------------------------------------
-
 /**
  * Floor area at which a food store is treated as a full-service supermarket
  * rather than a corner store.
@@ -183,9 +181,9 @@ export const NYC_COUNTY_NAMES: readonly string[] = [
 ];
 
 /**
- * FacDB subgroup counted as healthcare access. Deliberately narrow: this
- * subgroup is where care is actually delivered (hospitals, diagnostic and
- * treatment centers, extension and child-health clinics). The sibling
+ * Deliberately narrow: this subgroup is where care is actually delivered
+ * (hospitals, diagnostic and treatment centers, extension and child-health
+ * clinics). The sibling
  * 'OTHER HEALTH CARE' subgroup is mostly adult homes, home-care agencies and
  * City Council demonstration grants — real services, but not places a resident
  * can walk into for care, so counting them would overstate access.

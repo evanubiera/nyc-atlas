@@ -10,8 +10,6 @@ export interface BBox {
   readonly maxLat: number;
 }
 
-// --- Neighborhood -----------------------------------------------------------
-
 export type ExclusionReason =
   | { readonly kind: 'NON_RESIDENTIAL'; readonly ntatype: string }
   | { readonly kind: 'LOW_POPULATION'; readonly population: number }
@@ -57,8 +55,6 @@ export interface Demographics {
   readonly contributingTracts: number;
 }
 
-// --- Institutions -----------------------------------------------------------
-
 export type InstitutionScope = 'NARROW' | 'STANDARD' | 'BROAD';
 
 /** Scopes are nested: NARROW ⊂ STANDARD ⊂ BROAD. */
@@ -88,8 +84,6 @@ export interface CulturalInstitution {
   readonly dedupeKey: string;
 }
 
-// --- Incidents --------------------------------------------------------------
-
 export type LawCategory = 'FELONY' | 'MISDEMEANOR' | 'VIOLATION';
 
 export interface Incident {
@@ -104,8 +98,6 @@ export interface Incident {
   readonly premiseType: string | null;
   readonly precinct: number | null;
 }
-
-// --- Metrics ----------------------------------------------------------------
 
 export type OutcomeMeasure =
   | { readonly kind: 'SHOOTINGS' }
@@ -169,8 +161,6 @@ export interface MetricsResult {
   readonly caveats: readonly string[];
 }
 
-// --- Analysis ---------------------------------------------------------------
-
 export interface CorrelationResult {
   readonly raw: number;
   readonly adjusted: number;
@@ -195,8 +185,6 @@ export interface QuintileAnalysis {
   readonly exposure: ExposureMeasure;
   readonly caveats: readonly string[];
 }
-
-// --- Provenance -------------------------------------------------------------
 
 export interface DatasetProvenance {
   readonly id: string;

@@ -72,7 +72,6 @@ export function bivariateColor(
 
 export const BIVARIATE_LEGEND = BIVARIATE_GRID;
 
-/** Assigns a value to a tercile given two cut points. */
 export function tercile(value: number, cuts: readonly [number, number]): 0 | 1 | 2 {
   if (value <= cuts[0]) return 0;
   if (value <= cuts[1]) return 1;

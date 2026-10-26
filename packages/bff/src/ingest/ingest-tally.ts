@@ -9,8 +9,6 @@ export interface IncidentBatchResult {
 }
 
 /**
- * Running totals for an ingest run.
- *
  * Each stage adds its own rows, repairs and rejections; collecting them in one
  * place is what lets the quality report state exactly what was dropped and why,
  * rather than leaving the losses invisible.

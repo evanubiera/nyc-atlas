@@ -1,6 +1,6 @@
 /**
- * Design tokens. Every categorical value here was validated with the data-viz
- * palette validator in BOTH modes on the all-pairs pairlist (choropleth and
+ * Every categorical value here was validated with the data-viz palette
+ * validator in BOTH modes on the all-pairs pairlist (choropleth and
  * scatter are all-pairs forms, which caps the series count at three):
  *
  *   light — CVD ΔE 9.2 worst pair, normal-vision 24.0  → PASS

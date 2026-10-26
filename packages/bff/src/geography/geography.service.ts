@@ -173,7 +173,7 @@ export class GeographyService implements OnModuleInit {
   }
 
   /**
-   * Simplified geometry for the client. Raw NTA GeoJSON is 4.38 MB; the budget
+   * Raw NTA GeoJSON is 4.38 MB; the transport budget
    * is under 600 KB gzipped (specs/001 NFR-3). The reduction itself lives in
    * `simplify-geometry.ts`, so the CI budget check measures the same bytes.
    */

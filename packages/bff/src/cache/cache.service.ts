@@ -50,7 +50,6 @@ export class CacheService {
   }
 }
 
-/** Recursively sorts object keys so output is stable across runs. */
 function sortDeep(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(sortDeep);
   if (value !== null && typeof value === 'object') {

@@ -300,8 +300,6 @@ export interface OffenseClassification {
 }
 
 /**
- * Classifies an offense.
- *
  * Resolution order:
  *   1. Exact match on `ofns_desc`
  *   2. If `ofns_desc` is missing or a '(null)' sentinel, substring match on `pd_desc`

@@ -5,8 +5,6 @@
  * implement is specified in specs/007-methodology.md.
  */
 
-// --- Poisson confidence intervals -------------------------------------------
-
 /**
  * 95% confidence interval for a Poisson count, via Byar's approximation.
  *
@@ -39,8 +37,6 @@ export function poissonRateInterval(
   const [lo, hi] = poissonCountInterval(count);
   return [(lo / population) * 100_000, (hi / population) * 100_000];
 }
-
-// --- Empirical Bayes smoothing ----------------------------------------------
 
 export interface RateObservation {
   key: string;
@@ -94,8 +90,6 @@ export function empiricalBayesSmooth(observations: readonly RateObservation[]): 
   });
 }
 
-// --- Descriptive statistics --------------------------------------------------
-
 export function mean(xs: readonly number[]): number {
   if (xs.length === 0) return 0;
   return xs.reduce((a, b) => a + b, 0) / xs.length;
@@ -148,8 +142,6 @@ export function quantileBreaks(xs: readonly number[], classes: number): number[]
   return breaks;
 }
 
-// --- Ordinary least squares --------------------------------------------------
-
 export interface OlsResult {
   /** coefficients[0] is the intercept. */
   coefficients: number[];
@@ -160,15 +152,12 @@ export interface OlsResult {
 }
 
 /**
- * Multiple linear regression by normal equations with Gaussian elimination.
+ * Multiple linear regression by normal equations, (X'X)b = X'y, solved with
+ * Gaussian elimination. An intercept column is prepended to the design matrix.
  *
  * Design sizes here are tiny (197 rows, a handful of predictors), so the
  * numerical shortcomings of normal equations versus QR do not bite. Columns are
  * standardized by the caller, which keeps the system well conditioned.
- */
-/**
- * Least squares via the normal equations (X'X)b = X'y, with an intercept column
- * prepended to the design matrix.
  */
 export function ols(X: readonly (readonly number[])[], y: readonly number[]): OlsResult {
   const n = X.length;
@@ -248,8 +237,6 @@ export function standardize(xs: readonly number[]): number[] {
 }
 
 /**
- * Partial correlation of x and y, controlling for the columns of Z.
- *
  * This is the number that matters for the research question: the raw
  * correlation between cultural access and crime is dominated by income, and the
  * partial correlation is what survives adjustment. It remains an associational
@@ -266,8 +253,6 @@ export function partialCorrelation(
   const ry = ols(z, y).residuals;
   return pearson(rx, ry);
 }
-
-// --- Quintiles ----------------------------------------------------------------
 
 export interface QuintileInput {
   key: string;
@@ -290,14 +275,13 @@ export interface QuintileBucketResult {
  * Groups neighborhoods into exposure quintiles and computes a
  * population-weighted outcome rate per bucket with a Poisson interval.
  *
+ * Buckets are formed by rank rather than by value, which keeps the five groups
+ * equal in size even though the exposure distribution is heavily skewed — many
+ * neighborhoods have no institutions at all.
+ *
  * The rate is pooled (total events / total population), not an average of
  * per-neighborhood rates: averaging rates would weight a 2,000-person NTA the
  * same as a 90,000-person one and let small-area noise drive the result.
- */
-/**
- * Buckets by rank rather than by value, which keeps the five groups equal in
- * size even though the exposure distribution is heavily skewed — many
- * neighborhoods have no institutions at all.
  */
 export function quintileAnalysis(rows: readonly QuintileInput[]): QuintileBucketResult[] {
   const usable = rows.filter((r) => r.population > 0 && Number.isFinite(r.exposure));
