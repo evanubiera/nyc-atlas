@@ -88,6 +88,8 @@ export type CorrelationPayload = Pick<
   'raw' | 'adjusted' | 'confounders' | 'n' | 'modelRSquared' | 'interpretation'
 >;
 
+export type MaupPayload = Schema.MaupPayload;
+
 export type InstitutionPoint = Schema.InstitutionPoint;
 
 export type IncidentPoint = Schema.IncidentPointModel;
@@ -281,6 +283,26 @@ export const atlasApi = createApi({
       transformResponse: (r: { dataQualityReport: QualityReport | null }) => r.dataQualityReport,
     }),
 
+    maupCheck: build.query<MaupPayload, MetricsInput>({
+      query: (input) => ({
+        document: gql`
+          query MaupCheck($input: MetricsInput!) {
+            maupCheck(input: $input) {
+              fineCorrelation
+              coarseCorrelation
+              fineCount
+              coarseCount
+              shift
+              agrees
+              interpretation
+            }
+          }
+        `,
+        variables: { input },
+      }),
+      transformResponse: (r: { maupCheck: MaupPayload }) => r.maupCheck,
+    }),
+
     incidentPoints: build.query<IncidentsPayload, IncidentsInput>({
       query: (input) => ({
         document: gql`
@@ -338,4 +360,5 @@ export const {
   useAccessGapsQuery,
   useInstitutionsQuery,
   useIncidentPointsQuery,
+  useMaupCheckQuery,
 } = atlasApi;

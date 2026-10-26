@@ -1,5 +1,9 @@
 import styled from 'styled-components';
-import { useCorrelationQuery, type MetricsInput } from '../../store/atlasApi.js';
+import {
+  useCorrelationQuery,
+  useMaupCheckQuery,
+  type MetricsInput,
+} from '../../store/atlasApi.js';
 
 /**
  * Raw versus confounder-adjusted association.
@@ -10,6 +14,7 @@ import { useCorrelationQuery, type MetricsInput } from '../../store/atlasApi.js'
  */
 export function CorrelationSummary({ input }: { input: MetricsInput }): JSX.Element | null {
   const { data } = useCorrelationQuery(input);
+  const { data: maup } = useMaupCheckQuery(input);
   if (!data) return null;
 
   return (
@@ -32,6 +37,13 @@ export function CorrelationSummary({ input }: { input: MetricsInput }): JSX.Elem
         </Tile>
       </Tiles>
       <Interpretation>{data.interpretation}</Interpretation>
+
+      {maup && (
+        <Boundary $agrees={maup.agrees}>
+          <BoundaryLabel>Boundary check</BoundaryLabel>
+          {maup.interpretation}
+        </Boundary>
+      )}
     </Wrap>
   );
 }
@@ -76,6 +88,27 @@ const Figure = styled.div`
 const Sub = styled.div`
   font-size: 11px;
   color: ${({ theme }) => theme.textMuted};
+`;
+
+/**
+ * The MAUP result sits with the correlation it qualifies rather than in the
+ * limitations panel: a reader looking at r needs to know in the same glance
+ * whether r survives a different set of boundaries.
+ */
+const Boundary = styled.p<{ $agrees: boolean }>`
+  margin: ${({ theme }) => theme.space(2)} 0 0;
+  padding-left: ${({ theme }) => theme.space(2)};
+  border-left: 2px solid
+    ${({ theme, $agrees }) => ($agrees ? theme.gridline : theme.series[2])};
+  font-size: 11px;
+  line-height: 1.5;
+  color: ${({ theme }) => theme.textSecondary};
+`;
+
+const BoundaryLabel = styled.span`
+  display: block;
+  font-weight: 600;
+  color: ${({ theme }) => theme.textPrimary};
 `;
 
 const Interpretation = styled.p`

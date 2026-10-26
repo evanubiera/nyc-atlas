@@ -16,6 +16,7 @@ import {
 import {
   IncidentsInput,
   IncidentsPayload,
+  MaupPayload,
 } from './models/incidents.model.js';
 import { IncidentsService } from '../incidents/incidents.service.js';
 import { isBboxServiceable } from '../incidents/incident-points.js';
@@ -26,6 +27,16 @@ export class MetricsResolver {
     private readonly metricsService: MetricsService,
     private readonly incidentsService: IncidentsService,
   ) {}
+
+  @Query(() => MaupPayload, {
+    description:
+      'Boundary sensitivity for the current selection: the association re-aggregated from ' +
+      'neighborhoods to community districts. A finding that does not survive the change of ' +
+      'boundary is a property of the grid, not of the city.',
+  })
+  maupCheck(@Args('input') input: MetricsInput): MaupPayload {
+    return this.metricsService.maupCheck(toQuery(input));
+  }
 
   @Query(() => IncidentsPayload, {
     description:

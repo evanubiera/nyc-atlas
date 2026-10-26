@@ -40,7 +40,7 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 - [x] 2.9 Server-computed scale breaks (`ScaleHints`)
 - [x] 2.11 Pooled group figures (`pooledRate`, `weightedMean`) — tested in shared
 - [x] 2.12 Access-gap contrast: least- vs best-served fifth across five measures
-- [ ] 2.10 CDTA re-aggregation for the MAUP sensitivity check
+- [x] 2.10 CDTA re-aggregation for the MAUP sensitivity check
 
 ## Phase 3 — GraphQL
 - [x] 3.1 Resolvers per 005 — neighborhoods, geometry, capabilities, provenance, resolvePoint

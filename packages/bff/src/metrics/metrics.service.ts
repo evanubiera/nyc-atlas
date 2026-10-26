@@ -37,6 +37,12 @@ import {
   summarizeGroup,
 } from './access-gaps.js';
 import { LruCache } from '../common/lru-cache.js';
+import {
+  aggregateToUnits,
+  compareGeographies,
+  describeMaup,
+  type MaupCheck,
+} from './maup.js';
 import { collectComputeCaveats, residualAdjustmentCaveat } from './metrics-caveats.js';
 import {
   buildInterpretation,
@@ -342,6 +348,39 @@ export class MetricsService implements OnModuleInit {
    * residents outweigh a large one with eight and 90,000. Pooling gives the
    * figure an actual resident of the group experiences.
    */
+  /**
+   * The same association re-run over community districts (specs/008 §2.10).
+   *
+   * NTAs are one of several defensible ways to cut the city, and the
+   * modifiable areal unit problem says the correlation can move — or reverse —
+   * under a different cut. Reporting the neighborhood figure without this
+   * check would present a property of the grid as a property of the city.
+   */
+  maupCheck(query: MetricsQuery): MaupCheck & { interpretation: string } {
+    const { rows } = this.compute(query);
+
+    const usable = rows.filter((row) => row.excluded === null);
+    const fine = aggregateToUnits(
+      usable.map((row) => ({
+        unitKey: row.nta2020,
+        population: row.population,
+        rawCount: row.rawCount,
+        institutionCount: row.institutionCount,
+      })),
+    );
+    const coarse = aggregateToUnits(
+      usable.map((row) => ({
+        unitKey: this.geography.getRecord(row.nta2020)?.cdta2020 ?? 'UNKNOWN',
+        population: row.population,
+        rawCount: row.rawCount,
+        institutionCount: row.institutionCount,
+      })),
+    );
+
+    const check = compareGeographies(fine, coarse);
+    return { ...check, interpretation: describeMaup(check) };
+  }
+
   accessGaps(query: MetricsQuery): AccessGapsResult {
     const result = this.compute(query);
     const comparable = result.rows.filter(hasComparableExposure);

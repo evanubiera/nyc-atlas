@@ -43,3 +43,23 @@ export class IncidentsPayload {
   })
   serviceable!: boolean;
 }
+
+@ObjectType({
+  description:
+    'Boundary sensitivity. The same association re-run over community districts, so a ' +
+    'result that depends on how the neighborhoods were drawn is visible rather than implied.',
+})
+export class MaupPayload {
+  @Field(() => Float, { nullable: true }) fineCorrelation!: number | null;
+  @Field(() => Float, { nullable: true }) coarseCorrelation!: number | null;
+  @Field(() => Int) fineCount!: number;
+  @Field(() => Int) coarseCount!: number;
+
+  @Field(() => Float, { nullable: true, description: 'Absolute change in r between geographies.' })
+  shift!: number | null;
+
+  @Field(() => Boolean) agrees!: boolean;
+
+  @Field(() => String, { description: 'Non-nullable by design, as every interpretation here is.' })
+  interpretation!: string;
+}

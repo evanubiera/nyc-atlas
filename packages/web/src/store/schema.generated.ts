@@ -126,6 +126,16 @@ export interface InstitutionPoint {
 
 export type InstitutionScope = 'BROAD' | 'NARROW' | 'STANDARD';
 
+export interface MaupPayload {
+  agrees: boolean;
+  coarseCorrelation: number | null;
+  coarseCount: number;
+  fineCorrelation: number | null;
+  fineCount: number;
+  interpretation: string;
+  shift: number | null;
+}
+
 export interface MetricsInput {
   boroughCodes?: number[] | null;
   category: CrimeCategory;

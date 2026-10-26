@@ -221,6 +221,23 @@ enum InstitutionScope {
   STANDARD
 }
 
+"""
+Boundary sensitivity. The same association re-run over community districts, so a result that depends on how the neighborhoods were drawn is visible rather than implied.
+"""
+type MaupPayload {
+  agrees: Boolean!
+  coarseCorrelation: Float
+  coarseCount: Int!
+  fineCorrelation: Float
+  fineCount: Int!
+
+  """Non-nullable by design, as every interpretation here is."""
+  interpretation: String!
+
+  """Absolute change in r between geographies."""
+  shift: Float
+}
+
 input MetricsInput {
   boroughCodes: [Int!]
   category: CrimeCategory! = SHOOTING
@@ -384,6 +401,11 @@ type Query {
 
   """Cultural institutions at the requested scope."""
   institutions(scope: InstitutionScope! = STANDARD): [InstitutionPoint!]!
+
+  """
+  Boundary sensitivity for the current selection: the association re-aggregated from neighborhoods to community districts. A finding that does not survive the change of boundary is a property of the grid, not of the city.
+  """
+  maupCheck(input: MetricsInput!): MaupPayload!
 
   """
   Per-neighborhood crime, cultural-institution exposure and demographics. Rates are empirical-Bayes smoothed; residuals adjust for socioeconomic confounders.
