@@ -8,7 +8,7 @@ import type {
 import { buildAttributionHeader, csvFilename, escapeCsvField, toCsv } from './csvExport.ts';
 
 const INPUT: MetricsInput = {
-  category: 'SHOOTINGS',
+  category: 'SHOOTING',
   exposure: 'PER_CAPITA',
   scope: 'STANDARD',
   from: '2020-01',
@@ -114,7 +114,7 @@ test('every export states the sources and that this is not causation', () => {
   assert.ok(header.includes('do not establish that any measure causes any other'));
   assert.ok(header.includes('NYPD Shooting Incidents (5ucz-vwe8)'));
   assert.ok(header.includes('Ingest version: 2026-10-25'));
-  assert.ok(header.includes('category=SHOOTINGS'));
+  assert.ok(header.includes('category=SHOOTING'));
 });
 
 test('the causation line survives even when provenance never loaded', () => {
@@ -137,6 +137,6 @@ test('every attribution line is commented so the header row stays machine-readab
 test('the filename carries the selection and the day', () => {
   assert.equal(
     csvFilename(INPUT, new Date('2026-10-26T12:00:00Z')),
-    'nyc-atlas-shootings-2026-10-26.csv',
+    'nyc-atlas-shooting-2026-10-26.csv',
   );
 });

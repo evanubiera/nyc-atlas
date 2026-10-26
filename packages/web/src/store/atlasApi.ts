@@ -2,174 +2,97 @@ import { createApi } from '@reduxjs/toolkit/query/react';
 import { gql } from 'graphql-request';
 import { graphqlBaseQuery } from './graphqlBaseQuery.js';
 
-export interface Capabilities {
-  geographyLoaded: boolean;
-  neighborhoodCount: number;
-  residentialNeighborhoodCount: number;
-  censusApiAvailable: boolean;
-  socrataTokenConfigured: boolean;
-  degradedFeatures: string[];
-}
+/**
+ * Every shape below is derived from `schema.generated.ts` rather than written
+ * out again (specs/001 NFR-7, 008 §4.4).
+ *
+ * `Pick` keeps the selection honest: these types describe what the queries
+ * actually ask for, not the whole schema, so nothing can read a field the
+ * document never requested. And when the contract drops or renames a field,
+ * the Pick stops compiling instead of failing at runtime on undefined.
+ */
+import type * as Schema from './schema.generated.js';
 
-export interface NeighborhoodSummary {
-  nta2020: string;
-  name: string;
-  boroughName: string;
-  boroughCode: number;
-  landAreaSqKm: number;
-  isResidential: boolean;
-  exclusion: { kind: string; explanation: string } | null;
-}
+export type Capabilities = Schema.Capabilities;
 
-export interface ProvenanceData {
-  ingestVersion: string;
-  attribution: string;
-  warnings: string[];
-  datasets: {
-    id: string;
-    name: string;
-    purpose: string;
-    notes: string | null;
-    rowsUpdatedAt: string | null;
-    rowCount: number | null;
-  }[];
-}
+export type NeighborhoodSummary = Pick<
+  Schema.Neighborhood,
+  'nta2020' | 'name' | 'boroughName' | 'boroughCode' | 'landAreaSqKm' | 'isResidential'
+> & { exclusion: Pick<Schema.Exclusion, 'kind' | 'explanation'> | null };
 
-export interface QualityRejection {
-  dataset: string;
-  reason: string;
-  count: number;
-}
+export type ProvenanceData = Pick<
+  Schema.Provenance,
+  'ingestVersion' | 'attribution' | 'warnings'
+> & {
+  datasets: Pick<
+    Schema.DatasetProvenance,
+    'id' | 'name' | 'purpose' | 'notes' | 'rowsUpdatedAt' | 'rowCount'
+  >[];
+};
 
-export interface QualityReport {
-  generatedAt: string;
-  totalRowsProcessed: number;
-  recoveredViaFallback: number;
-  rejections: QualityRejection[];
-  unmappedOffenses: string[];
-  notes: string[];
-}
+export type QualityRejection = Schema.QualityRejection;
+export type QualityReport = Schema.QualityReportPayload;
 
-export type OutcomeMode = 'RATE_PER_100K' | 'COUNT_PER_SQKM';
+export type OutcomeMode = Schema.OutcomeMode;
 
-export interface MetricsInput {
-  category: string;
-  exposure: 'DENSITY' | 'PER_CAPITA' | 'ACCESS';
-  scope: 'NARROW' | 'STANDARD' | 'BROAD';
-  from: string;
-  to: string;
-  boroughCodes?: number[];
-}
+export type MetricsInput = Schema.MetricsInput;
 
-export interface NeighborhoodMetric {
-  nta2020: string;
-  name: string;
-  boroughName: string;
-  population: number | null;
-  rawCount: number;
-  ratePer100k: number | null;
-  smoothedRatePer100k: number | null;
-  confidenceInterval: number[] | null;
-  institutionCount: number;
-  institutionsPerSqKm: number;
-  institutionsPer10k: number | null;
-  exposureValue: number | null;
-  residual: number | null;
-  medianHouseholdIncome: number | null;
-  povertyRate: number | null;
-  shareBachelorsOrHigher: number | null;
-  foodStoreCount: number;
-  supermarketCount: number;
-  supermarketsPer10k: number | null;
-  gradedStoreCount: number;
-  gradeAStoreCount: number;
-  storeGradeShare: number | null;
-  healthcareSiteCount: number;
-  healthcareSitesPer10k: number | null;
-  schoolCount: number;
-  schoolStudents: number;
-  schoolProficiency: number | null;
-  isEnforcementDriven: boolean;
-  excluded: { kind: string; explanation: string } | null;
-}
+export type NeighborhoodMetric = Pick<
+  Schema.NeighborhoodMetric,
+  | 'nta2020'
+  | 'name'
+  | 'boroughName'
+  | 'population'
+  | 'rawCount'
+  | 'ratePer100k'
+  | 'smoothedRatePer100k'
+  | 'confidenceInterval'
+  | 'institutionCount'
+  | 'institutionsPerSqKm'
+  | 'institutionsPer10k'
+  | 'exposureValue'
+  | 'residual'
+  | 'medianHouseholdIncome'
+  | 'povertyRate'
+  | 'shareBachelorsOrHigher'
+  | 'foodStoreCount'
+  | 'supermarketCount'
+  | 'supermarketsPer10k'
+  | 'gradedStoreCount'
+  | 'gradeAStoreCount'
+  | 'storeGradeShare'
+  | 'healthcareSiteCount'
+  | 'healthcareSitesPer10k'
+  | 'schoolCount'
+  | 'schoolStudents'
+  | 'schoolProficiency'
+  | 'isEnforcementDriven'
+  | 'excluded'
+>;
 
-export interface MetricsPayload {
-  outcomeMode: OutcomeMode;
-  rows: NeighborhoodMetric[];
-  scaleBreaks: number[];
-  residualExtent: number[] | null;
-  caveats: string[];
-  demographicsAvailable: boolean;
-}
+export type MetricsPayload = Pick<
+  Schema.MetricsPayload,
+  'outcomeMode' | 'scaleBreaks' | 'residualExtent' | 'caveats' | 'demographicsAvailable'
+> & { rows: NeighborhoodMetric[] };
 
-export interface QuintileBucket {
-  quintile: number;
-  exposureRange: number[];
-  meanOutcomeRate: number;
-  confidenceInterval: number[];
-  neighborhoodCount: number;
-  totalPopulation: number;
-  totalCount: number;
-}
+export type QuintileBucket = Schema.QuintileBucket;
 
-export interface QuintilePayload {
-  outcomeMode: OutcomeMode;
-  buckets: QuintileBucket[];
-  caveats: string[];
-  demographicsAvailable: boolean;
-}
+export type QuintilePayload = Pick<
+  Schema.QuintilePayload,
+  'outcomeMode' | 'caveats' | 'demographicsAvailable'
+> & { buckets: QuintileBucket[] };
 
-export interface CorrelationPayload {
-  raw: number;
-  adjusted: number | null;
-  confounders: string[];
-  n: number;
-  modelRSquared: number | null;
-  interpretation: string;
-}
+export type CorrelationPayload = Pick<
+  Schema.CorrelationPayload,
+  'raw' | 'adjusted' | 'confounders' | 'n' | 'modelRSquared' | 'interpretation'
+>;
 
-export interface InstitutionPoint {
-  id: string;
-  name: string;
-  source: string;
-  lon: number;
-  lat: number;
-  nta2020: string | null;
-  scope: string;
-  discipline: string | null;
-  facilitySubgroup: string | null;
-  facilityType: string | null;
-}
+export type InstitutionPoint = Schema.InstitutionPoint;
 
-export type GapUnit = 'USD' | 'PER_10K' | 'SHARE';
-
-export interface AccessGapMeasure {
-  key: string;
-  label: string;
-  unit: GapUnit;
-  lowest: number | null;
-  highest: number | null;
-  ratio: number | null;
-  higherIsBetter: boolean;
-  note: string;
-}
-
-export interface AccessGapGroup {
-  neighborhoodCount: number;
-  population: number;
-  institutionsPer10k: number | null;
-  examples: string[];
-}
-
-export interface AccessGapsPayload {
-  measures: AccessGapMeasure[];
-  least: AccessGapGroup;
-  most: AccessGapGroup;
-  exposureLabel: string;
-  amenitiesAvailable: boolean;
-  demographicsAvailable: boolean;
-  caveats: string[];
-}
+export type GapUnit = Schema.GapUnit;
+export type AccessGapMeasure = Schema.AccessGapMeasure;
+export type AccessGapGroup = Schema.AccessGapGroup;
+export type AccessGapsPayload = Schema.AccessGapsPayload;
 
 const METRIC_FIELDS = `
   nta2020 name boroughName population rawCount

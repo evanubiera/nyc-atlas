@@ -25,6 +25,11 @@ jobs:
 
       - run: npm ci
 
+      # The schema is the single source for the client's types; a stale
+      # generated file means the contract diverged without anyone noticing.
+      - name: Check the generated GraphQL types are current
+        run: npm run check:types-fresh
+
       - name: Typecheck the monorepo
         run: npm run typecheck
 
