@@ -12,6 +12,7 @@ function metric(overrides: Partial<NeighborhoodMetric> = {}): NeighborhoodMetric
     nta2020: 'MN0101',
     name: 'Somewhere',
     boroughName: 'Manhattan',
+    centroid: [-73.95, 40.73],
     population: 10_000,
     rawCount: 0,
     ratePer100k: 0,

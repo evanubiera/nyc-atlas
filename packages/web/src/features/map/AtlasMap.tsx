@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import DeckGL from '@deck.gl/react';
 import { Map as BaseMap } from 'react-map-gl/maplibre';
 import { useTheme } from 'styled-components';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {
   useGeometryQuery,
+  useIncidentPointsQuery,
   useInstitutionsQuery,
   useMetricsQuery,
   type MetricsInput,
@@ -14,15 +15,29 @@ import { useAppSelector } from '../../store/hooks.js';
 import { MapTooltip, type HoverInfo } from './MapTooltip.tsx';
 import { MapCanvas, Overlay, OverlayMessage } from './mapStyles.ts';
 import { computeTerciles, indexByNta, maxSmoothedRate } from './mapEncoding.ts';
+import {
+  boundsOf,
+  quantizeBounds,
+  HEXBIN_MIN_ZOOM,
+  type MapViewState,
+} from './viewportBounds.ts';
 import { useAtlasLayers } from './useAtlasLayers.ts';
 
-const INITIAL_VIEW_STATE = {
+const INITIAL_VIEW_STATE: MapViewState = {
   longitude: -73.95,
   latitude: 40.7,
   zoom: 9.6,
   pitch: 45,
   bearing: 0,
 };
+
+/** `YYYY-MM` to the ISO day the incidents resolver expects. */
+function toIsoDay(month: string, endOfMonth: boolean): string {
+  if (!/^\d{4}-\d{2}$/.test(month)) return endOfMonth ? '2026-12-31' : '2006-01-01';
+  if (!endOfMonth) return `${month}-01`;
+  const [year, m] = month.split('-').map(Number) as [number, number];
+  return new Date(Date.UTC(year, m, 0)).toISOString().slice(0, 10);
+}
 
 function MapUnavailable({ children }: { children: React.ReactNode }): JSX.Element {
   return (
@@ -56,6 +71,45 @@ export function AtlasMap({ input }: { input: MetricsInput }): JSX.Element {
   const [hover, setHover] = useState<HoverInfo | null>(null);
   const { byNta, terciles, maxRate } = useMapStatistics(metrics);
 
+  const [viewState, setViewState] = useState<MapViewState>(INITIAL_VIEW_STATE);
+  const canvasRef = useRef<HTMLDivElement | null>(null);
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+
+  // Deck reports no size of its own, and unprojecting against a zero-sized
+  // viewport would ask the server for points inside a degenerate box.
+  useEffect(() => {
+    const node = canvasRef.current;
+    if (!node) return;
+
+    const measure = (): void =>
+      setCanvasSize({ width: node.clientWidth, height: node.clientHeight });
+    measure();
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  const bounds = useMemo(() => {
+    if (viewState.zoom < HEXBIN_MIN_ZOOM) return null;
+    const box = boundsOf(viewState, canvasSize.width, canvasSize.height);
+    return box ? quantizeBounds(box) : null;
+  }, [viewState, canvasSize]);
+
+  // Points are only fetched once the view is tight enough to draw them; below
+  // that the choropleth is the answer and the query would be refused anyway.
+  const { data: incidentData } = useIncidentPointsQuery(
+    bounds
+      ? {
+          ...bounds,
+          category: input.category,
+          from: toIsoDay(input.from, false),
+          to: toIsoDay(input.to, true),
+        }
+      : ({} as never),
+    { skip: bounds === null },
+  );
+
   const layers = useAtlasLayers({
     geometry,
     byNta,
@@ -67,6 +121,8 @@ export function AtlasMap({ input }: { input: MetricsInput }): JSX.Element {
     showInstitutions,
     institutions,
     theme,
+    zoom: viewState.zoom,
+    incidents: incidentData?.points ?? [],
     onHover: setHover,
   });
 
@@ -77,9 +133,10 @@ export function AtlasMap({ input }: { input: MetricsInput }): JSX.Element {
   }
 
   return (
-    <MapCanvas>
+    <MapCanvas ref={canvasRef}>
       <DeckGL
-        initialViewState={INITIAL_VIEW_STATE}
+        viewState={viewState as never}
+        onViewStateChange={({ viewState: next }) => setViewState(next as MapViewState)}
         controller
         layers={layers as never}
         getCursor={({ isDragging }) => (isDragging ? 'grabbing' : 'crosshair')}

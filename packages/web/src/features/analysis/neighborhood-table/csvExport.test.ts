@@ -36,6 +36,7 @@ function row(overrides: Partial<NeighborhoodMetric> = {}): NeighborhoodMetric {
     nta2020: 'BK0101',
     name: 'Greenpoint',
     boroughName: 'Brooklyn',
+    centroid: [-73.95, 40.73],
     population: 38000,
     rawCount: 12,
     ratePer100k: 31.578947,

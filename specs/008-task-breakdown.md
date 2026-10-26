@@ -60,10 +60,10 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 - [x] 5.1 MapLibre basemap + DeckGL overlay, no token
 - [x] 5.2 Extruded `GeoJsonLayer` choropleth — renders; fill is a **placeholder** until metrics land
 - [x] 5.3 Institution layer, Scatterplot→Column at z12
-- [ ] 5.4 Hexbin incident layer, z13+, bbox-bounded
+- [x] 5.4 Hexbin incident layer, z13+, bbox-bounded
 - [x] 5.5 Hover tooltips showing raw **and** smoothed rates
-- [~] 5.6 Excluded NTAs at zero elevation — texture fill still to do
-- [ ] 5.7 Neighborhood labels with surface halo
+- [x] 5.6 Excluded NTAs at zero elevation, hatched rather than flat grey
+- [x] 5.7 Neighborhood labels with surface halo, above z11.5
 - [ ] 5.8 Keyboard traversal of NTAs
 
 ## Phase 6 — Analysis

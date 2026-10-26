@@ -68,6 +68,7 @@ export type NeighborhoodMetric = Pick<
   | 'schoolProficiency'
   | 'isEnforcementDriven'
   | 'excluded'
+  | 'centroid'
 >;
 
 export type MetricsPayload = Pick<
@@ -89,6 +90,10 @@ export type CorrelationPayload = Pick<
 
 export type InstitutionPoint = Schema.InstitutionPoint;
 
+export type IncidentPoint = Schema.IncidentPointModel;
+export type IncidentsInput = Schema.IncidentsInput;
+export type IncidentsPayload = Schema.IncidentsPayload;
+
 export type GapUnit = Schema.GapUnit;
 export type AccessGapMeasure = Schema.AccessGapMeasure;
 export type AccessGapGroup = Schema.AccessGapGroup;
@@ -103,7 +108,7 @@ const METRIC_FIELDS = `
   gradedStoreCount gradeAStoreCount storeGradeShare
   healthcareSiteCount healthcareSitesPer10k
   schoolCount schoolStudents schoolProficiency
-  isEnforcementDriven
+  isEnforcementDriven centroid
   excluded { kind explanation }
 `;
 
@@ -276,6 +281,26 @@ export const atlasApi = createApi({
       transformResponse: (r: { dataQualityReport: QualityReport | null }) => r.dataQualityReport,
     }),
 
+    incidentPoints: build.query<IncidentsPayload, IncidentsInput>({
+      query: (input) => ({
+        document: gql`
+          query Incidents($input: IncidentsInput!) {
+            incidents(input: $input) {
+              capped
+              serviceable
+              points {
+                lon
+                lat
+                occurredOn
+              }
+            }
+          }
+        `,
+        variables: { input },
+      }),
+      transformResponse: (r: { incidents: IncidentsPayload }) => r.incidents,
+    }),
+
     provenance: build.query<ProvenanceData, void>({
       query: () => ({
         document: gql`
@@ -312,4 +337,5 @@ export const {
   useCorrelationQuery,
   useAccessGapsQuery,
   useInstitutionsQuery,
+  useIncidentPointsQuery,
 } = atlasApi;
