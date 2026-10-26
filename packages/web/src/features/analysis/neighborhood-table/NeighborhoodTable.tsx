@@ -74,11 +74,13 @@ function TableCaption({
 function TableBody({
   rows,
   institutionsByNta,
+  category,
   expandedNta,
   onToggle,
 }: {
   rows: NeighborhoodMetric[];
   institutionsByNta: Map<string, InstitutionPoint[]>;
+  category: string;
   expandedNta: string | null;
   onToggle: (nta2020: string) => void;
 }): JSX.Element {
@@ -89,6 +91,7 @@ function TableBody({
           key={row.nta2020}
           row={row}
           institutions={institutionsByNta.get(row.nta2020) ?? []}
+          category={category}
           isExpanded={expandedNta === row.nta2020}
           onToggle={() => onToggle(row.nta2020)}
         />
@@ -163,6 +166,7 @@ export function NeighborhoodTable({ input }: { input: MetricsInput }): JSX.Eleme
           <TableBody
             rows={rows}
             institutionsByNta={institutionsByNta}
+            category={input.category}
             expandedNta={expandedNta}
             onToggle={toggleExpanded}
           />
