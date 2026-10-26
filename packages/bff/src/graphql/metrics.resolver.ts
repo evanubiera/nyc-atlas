@@ -13,10 +13,43 @@ import {
   QualityReportPayload,
   QuintilePayload,
 } from './models/metrics.model.js';
+import {
+  IncidentsInput,
+  IncidentsPayload,
+} from './models/incidents.model.js';
+import { IncidentsService } from '../incidents/incidents.service.js';
+import { isBboxServiceable } from '../incidents/incident-points.js';
 
 @Resolver()
 export class MetricsResolver {
-  constructor(private readonly metricsService: MetricsService) {}
+  constructor(
+    private readonly metricsService: MetricsService,
+    private readonly incidentsService: IncidentsService,
+  ) {}
+
+  @Query(() => IncidentsPayload, {
+    description:
+      'Point-level incidents inside a viewport. The ingest keeps only NTA-by-month ' +
+      'aggregates, so these are fetched upstream on demand — which is why the box is ' +
+      'required and the rows are capped. Intended for the hexbin layer at z13+.',
+  })
+  async incidents(@Args('input') input: IncidentsInput): Promise<IncidentsPayload> {
+    const bbox = { west: input.west, south: input.south, east: input.east, north: input.north };
+
+    if (!isBboxServiceable(bbox)) {
+      return { points: [], capped: false, serviceable: false };
+    }
+
+    const result = await this.incidentsService.fetchPoints({
+      bbox,
+      category: input.category as unknown as CrimeCategory,
+      from: input.from,
+      to: input.to,
+      ...(input.limit === undefined ? {} : { limit: input.limit }),
+    });
+
+    return { points: result.points, capped: result.capped, serviceable: true };
+  }
 
   @Query(() => MetricsPayload, {
     description:

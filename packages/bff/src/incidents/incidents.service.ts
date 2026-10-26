@@ -7,8 +7,17 @@ import {
   type CrimeCategory,
   type Nta2020Code,
 } from '@nyc-atlas/shared';
+import { OFFENSE_TO_CATEGORY } from '@nyc-atlas/shared';
 import { SocrataService } from '../socrata/socrata.service.js';
 import { GeographyService } from '../geography/geography.service.js';
+import {
+  buildBboxWhere,
+  isBboxServiceable,
+  MAX_INCIDENT_POINTS,
+  toPointsWithinBbox,
+  type BoundingBox,
+  type IncidentPoint,
+} from './incident-points.js';
 
 /** nta2020 -> category -> 'YYYY-MM' -> count */
 export type IncidentAggregate = Record<string, Record<string, Record<string, number>>>;
@@ -111,6 +120,53 @@ export class IncidentsService {
   }
 
   /**
+   * Point-level incidents inside a viewport (specs/008 §3.5).
+   *
+   * Nothing stores these: the ingest aggregates to NTA and month, so the only
+   * source of points is upstream. Both bounds are load-bearing — the bbox
+   * keeps the query small enough to answer, and the row cap keeps one
+   * pathological request from stalling the process.
+   *
+   * Returns `capped` so the client can say the view is partial rather than
+   * drawing a sample as if it were the whole.
+   */
+  async fetchPoints(params: {
+    bbox: BoundingBox;
+    category: CrimeCategory;
+    from: string;
+    to: string;
+    limit?: number;
+  }): Promise<{ points: IncidentPoint[]; capped: boolean }> {
+    const { bbox, category, from, to } = params;
+    const limit = Math.min(params.limit ?? MAX_INCIDENT_POINTS, MAX_INCIDENT_POINTS);
+
+    if (!isBboxServiceable(bbox)) return { points: [], capped: false };
+
+    const isShooting = category === 'SHOOTING';
+    const dataset = isShooting ? DATASETS.shootings : DATASETS.complaintsCurrent;
+    const dateColumn = isShooting ? 'occur_date' : 'cmplnt_fr_dt';
+
+    let where = buildBboxWhere(bbox, dateColumn, from, to);
+    if (!isShooting) {
+      const labels = offenseLabelsFor(category);
+      if (labels.length === 0) return { points: [], capped: false };
+      where += ` and ofns_desc in (${labels.map(quoteSoql).join(',')})`;
+    }
+
+    const rows = await this.socrata.query<ShootingRow & ComplaintRow>(dataset.id, {
+      select: `latitude, longitude, ${dateColumn}`,
+      where,
+      limit,
+    });
+
+    const points = toPointsWithinBbox(rows, bbox, (row) =>
+      isShooting ? (row as ShootingRow).occur_date : (row as ComplaintRow).cmplnt_fr_dt,
+    );
+
+    return { points, capped: rows.length >= limit };
+  }
+
+  /**
    * Validates a row and resolves it to an NTA and a month bucket.
    * Returns null for any row that cannot be trusted, recording why.
    *
@@ -207,4 +263,16 @@ export function mergeAggregates(a: IncidentAggregate, b: IncidentAggregate): Inc
     }
   }
   return out;
+}
+
+/** The raw upstream labels that map to one analysis category. */
+function offenseLabelsFor(category: CrimeCategory): string[] {
+  return Object.entries(OFFENSE_TO_CATEGORY)
+    .filter(([, mapped]) => mapped === category)
+    .map(([label]) => label);
+}
+
+/** SoQL escapes a single quote by doubling it; several offense labels contain one. */
+function quoteSoql(value: string): string {
+  return `'${value.replace(/'/g, "''")}'`;
 }

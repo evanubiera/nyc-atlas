@@ -20,6 +20,6 @@ import { IngestService } from '../ingest/ingest.service.js';
     AmenitiesService,
     IngestService,
   ],
-  exports: [MetricsService, IngestService, CacheService],
+  exports: [MetricsService, IngestService, CacheService, IncidentsService],
 })
 export class MetricsModule {}

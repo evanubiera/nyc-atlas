@@ -159,6 +159,45 @@ enum GapUnit {
   USD
 }
 
+"""One incident, positioned."""
+type IncidentPointModel {
+  lat: Float!
+  lon: Float!
+  occurredOn: String!
+}
+
+"""A viewport. Both bounds are required — see specs/008 §3.5."""
+input IncidentsInput {
+  category: CrimeCategory!
+  east: Float!
+
+  """Inclusive ISO day."""
+  from: String!
+
+  """Capped server-side regardless."""
+  limit: Int
+  north: Float!
+  south: Float!
+
+  """Inclusive ISO day."""
+  to: String!
+  west: Float!
+}
+
+"""Points inside the requested viewport."""
+type IncidentsPayload {
+  """
+  True when the row cap was reached, so these points are a sample of the viewport rather than all of it. The client must say so rather than drawing it as complete.
+  """
+  capped: Boolean!
+  points: [IncidentPointModel!]!
+
+  """
+  False when the requested box is too large to serve points for; the choropleth carries the answer at that zoom.
+  """
+  serviceable: Boolean!
+}
+
 type InstitutionPoint {
   discipline: String
   facilitySubgroup: String
@@ -337,6 +376,11 @@ type Query {
   """
   correlation(input: MetricsInput!): CorrelationPayload!
   dataQualityReport: QualityReportPayload
+
+  """
+  Point-level incidents inside a viewport. The ingest keeps only NTA-by-month aggregates, so these are fetched upstream on demand — which is why the box is required and the rows are capped. Intended for the hexbin layer at z13+.
+  """
+  incidents(input: IncidentsInput!): IncidentsPayload!
 
   """Cultural institutions at the requested scope."""
   institutions(scope: InstitutionScope! = STANDARD): [InstitutionPoint!]!
