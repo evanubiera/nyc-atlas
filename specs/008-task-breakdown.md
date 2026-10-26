@@ -45,7 +45,7 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 ## Phase 3 — GraphQL
 - [x] 3.1 Resolvers per 005 — neighborhoods, geometry, capabilities, provenance, resolvePoint
 - [x] 3.2 Non-nullable `caveats` / `interpretation` enforcement
-- [ ] 3.3 Request memoization, 15 min LRU
+- [x] 3.3 Request memoization, 15 min LRU
 - [ ] 3.4 Provenance and quality-report resolvers
 - [ ] 3.5 bbox-bounded, row-capped `incidents` resolver
 - [x] 3.6 `accessGaps` resolver; amenity fields on `NeighborhoodMetric`

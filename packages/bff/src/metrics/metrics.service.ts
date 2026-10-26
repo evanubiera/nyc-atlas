@@ -36,6 +36,7 @@ import {
   splitByAccessQuintile,
   summarizeGroup,
 } from './access-gaps.js';
+import { LruCache } from '../common/lru-cache.js';
 import { collectComputeCaveats, residualAdjustmentCaveat } from './metrics-caveats.js';
 import {
   buildInterpretation,
@@ -67,6 +68,20 @@ const SCALE_CLASSES = 7;
 /** Land area scaled to 100k units so Poisson maths reads as incidents per 100 km². */
 const SQKM_TO_RATE_DENOMINATOR = 1000;
 
+const COMPUTE_CACHE_TTL_MS = 15 * 60 * 1000;
+const COMPUTE_CACHE_MAX_ENTRIES = 64;
+
+/**
+ * Borough codes are sorted so the same filter expressed in a different order
+ * is one cache entry rather than two.
+ */
+function metricsCacheKey(query: MetricsQuery): string {
+  const boroughs = query.boroughCodes ? [...query.boroughCodes].sort((a, b) => a - b) : [];
+  return [query.category, query.exposure, query.scope, query.from, query.to, boroughs.join('+')].join(
+    '|',
+  );
+}
+
 @Injectable()
 export class MetricsService implements OnModuleInit {
   private readonly logger = new Logger(MetricsService.name);
@@ -76,6 +91,15 @@ export class MetricsService implements OnModuleInit {
   private demographics: DemographicsCache | null = null;
   private amenities: AmenitiesCache | null = null;
   private quality: QualityReport | null = null;
+
+  /**
+   * 15 minutes, per specs/008 §3.3. The cap is generous next to the real query
+   * space a session explores, and small next to holding every combination.
+   */
+  private readonly computeCache = new LruCache<string, MetricsResult>(
+    COMPUTE_CACHE_MAX_ENTRIES,
+    COMPUTE_CACHE_TTL_MS,
+  );
 
   constructor(
     private readonly geography: GeographyService,
@@ -87,6 +111,9 @@ export class MetricsService implements OnModuleInit {
   }
 
   async reload(): Promise<void> {
+    // Anything memoised was computed from the files about to be replaced.
+    this.computeCache.clear();
+
     this.incidents = await this.cache.read<IncidentCache>(CACHE_FILES.incidents);
     const institutions = await this.cache.read<InstitutionCache>(CACHE_FILES.institutions);
     this.institutions = institutions?.institutions ?? [];
@@ -135,10 +162,25 @@ export class MetricsService implements OnModuleInit {
   }
 
   /**
-   * The core join: crime counts, institution exposure and demographics per NTA,
-   * with smoothing, intervals, and confounder-adjusted residuals.
+   * One page load asks for metrics, quintiles, the correlation and the access
+   * gaps, and each of those needs the same join. Without memoisation the whole
+   * computation runs four times over identical inputs.
+   *
+   * The TTL matters as much as the hit rate: the process is long-lived, and an
+   * entry that outlived a re-ingest would serve figures the cache files no
+   * longer contain (specs/008 §3.3).
    */
   compute(query: MetricsQuery): MetricsResult {
+    const key = metricsCacheKey(query);
+    const hit = this.computeCache.get(key);
+    if (hit) return hit;
+
+    const result = this.computeUncached(query);
+    this.computeCache.set(key, result);
+    return result;
+  }
+
+  private computeUncached(query: MetricsQuery): MetricsResult {
     const records = this.residentialRecordsFor(query);
     const demographics = this.demographics?.byNta ?? {};
     const amenities = this.amenities?.byNta ?? {};
