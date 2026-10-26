@@ -192,6 +192,147 @@ approximation must be labelled in the UI.
 
 ---
 
+## Amenity access — groceries, schools, healthcare
+
+Income alone describes a neighborhood thinly. These three measure what a
+resident can actually reach. None needs a Census key, so they degrade
+independently of the ACS stage.
+
+Each is a **count of places**, or a share of a countable population. There is
+deliberately no composite "opportunity index": collapsing the three into one
+number hides which is missing, and the weights would be ours rather than the
+data's.
+
+### 8. Groceries — Retail Food Stores (NYS Ag & Markets)
+`9a8c-vfzj` · **host `data.ny.gov`, not `data.cityofnewyork.us`**
+
+Fields used: `license_number`, `county`, `entity_name`, `dba_name`,
+`square_footage`, `georeference`
+
+Food retail is licensed by the **State**, so there is no City dataset covering
+it. This is the one entry in the registry that carries its own `domain`;
+`SocrataService` takes a host override and the API is otherwise identical.
+
+| Measured | Value |
+|---|---|
+| NYC rows (5 counties) | 11,159 |
+| At or above 10,000 sq ft | 763 (6.8%) |
+| Missing `georeference` | 227 — cannot be placed, reported as a rejection |
+
+**Operational definition.** A store of **10,000 sq ft or more** counts as a
+full-service supermarket. That is the conventional line in NYC food-access work
+and in USDA food-desert analysis. It is a proxy: floor area predicts produce,
+dairy and meat depth; it does not measure them.
+
+**The known weakness.** `square_footage` is self-reported at licensing and never
+audited — a donut shop in the file claims 20,000 sq ft. This is the noisiest
+input in the application. It is used anyway because it is the only citywide
+signal separating a supermarket from a bodega, and because the error is not
+obviously correlated with income, which is what would actually bias the
+comparison the app draws. A plain store count would mostly measure bodegas and
+would run *opposite* to grocery access.
+
+No NTA field: coordinates go through the same point-in-polygon join as crime.
+
+### 8a. Grocery rating — Food Safety Inspections
+`d6dy-3h7r` · **host `data.ny.gov`**
+
+Fields used: `county`, `trade_name`, `owner_name`, `street`, `inspection_grade`,
+`inspection_date`, `georeference`
+
+| Measured | Value |
+|---|---|
+| NYC rows | 94,910 |
+| Distinct establishments after collapsing | 11,766 |
+| Current grade distribution | A 85.7%, B 4.0%, C 10.4% |
+| With `georeference` | 99.3% |
+| Inspection dates | 2024-08 to 2026-08 |
+| Residential NTAs with a figure | 197 of 197 (min denominator 5, median 51) |
+
+**Two collapses are mandatory, and skipping either inverts the measure.**
+
+1. The file carries **one row per deficiency**, not per establishment. A filthy
+   store contributes a dozen rows and a clean one contributes a single row, so
+   counting rows ranks the worst neighborhoods best. A unit test asserts this
+   directly: on the same fixture, row counting reads 25% passing where the
+   collapsed figure reads 50%.
+2. Establishments are inspected repeatedly. Only the **most recent** inspection
+   counts; an old failure since corrected is not the store's grade today.
+
+Establishment identity is `owner_name + trade_name + street` — trade name alone
+merges chains, and street alone merges a mall.
+
+**The counties are spelled in Title Case** here and in SHOUT CASE in the licence
+file, so the filter runs through `upper()` and one constant serves both.
+
+**What it is not.** This is a **sanitation** grade: whether a store is clean and
+storing food safely. It says nothing about whether the produce is fresh, the
+prices are fair, or the shelves carry anything green — which is what "a good
+grocery store" usually means. It is the only store-level rating published
+citywide, and it is labelled for what it measures everywhere it appears.
+
+### 9. School outcomes — School Quality Reports + School Locations
+`dnpx-dfnc` (outcomes) joined to `wg9x-4ke6` (coordinates)
+
+This takes **two** datasets. The quality file is keyed by DBN and carries no
+geography; the location file carries coordinates and no outcomes.
+
+| Measured | Value |
+|---|---|
+| Schools with 2024 EMS proficiency | 1,360 |
+| Distinct DBNs in the location file | 2,131 (all with coordinates) |
+| Matched | 1,331 (97.4%) |
+| Placed in an NTA after the spatial join | 1,325 schools, 366,214 students |
+| NTAs with a figure | 196 of 197 residential |
+
+**Metric.** `prof_pct_ela_all` and `prof_pct_mth_all` — the share of students at
+**NY State Level 3–4** — for `school_year = 2024`, `report_type = 'EMS'`
+(elementary and middle). Long format: one row per school per metric, so the two
+subjects are pooled per school *first*, weighted by `number_of_students`, before
+rolling up. A school reporting only one subject is then not under-weighted
+against one reporting both.
+
+Averaging a school's two subject enrolments leaves halves, so the stored student
+count is rounded — students are whole people, and `schoolStudents` is a GraphQL
+`Int`.
+
+**Pinned vintage.** `wg9x-4ke6` is 2019–20, the newest published location file.
+The 2.6% that do not match are mostly charters opened after 2020; they are
+counted as a rejection rather than dropped silently. `verify:sources` warns when
+a school year newer than the pinned one appears.
+
+**What it is not.** This is where a neighborhood's schools *are*, not where its
+children *go*. Choice and screening move students across neighborhood lines in
+both directions, and the figure should never be read as the outcomes of the
+children who live there.
+
+### 10. Healthcare — Facilities Database
+`ji82-xba5`, `facsubgrp = 'HOSPITALS AND CLINICS'` — 1,297 records
+
+Deliberately narrow. This subgroup is where care is actually delivered:
+hospitals, diagnostic and treatment centers, hospital and D&T extension clinics,
+school-based clinics, child health centers. The sibling `OTHER HEALTH CARE`
+subgroup (250 records) is mostly adult homes, home-care agencies and City Council
+demonstration grants — real services, but not doors a resident walks into for
+care, so counting them would overstate access.
+
+Two residential `factype`s inside the subgroup are excluded as housing rather
+than care: `ENRICHED HOUSING PROGRAM` and `HOSPITAL RESIDENTIAL STRUCTURE`
+(38 rows rejected).
+
+**What it is not.** A site is a site. This counts doors, not capacity, opening
+hours, or whether a given clinic accepts your insurance.
+
+### Aggregation rule for all three
+
+Group figures are **pooled**, never averaged across neighborhoods. A mean of
+per-neighborhood rates lets a 3,000-person NTA with one supermarket outweigh a
+90,000-person NTA with eight, which describes neighborhoods rather than people.
+`pooledRate` and `weightedMean` in `packages/shared/src/statistics.ts` are the
+tested implementations.
+
+---
+
 ## Observed data-quality issues
 
 These are real, measured on live data — not hypothetical.

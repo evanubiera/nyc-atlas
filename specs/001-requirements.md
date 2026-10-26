@@ -28,6 +28,15 @@
 - FR-3.4 Partial correlation adjusting for the confounder set, with coefficients shown
 - FR-3.5 Sensitivity toggle: re-aggregate to Community Districts (MAUP check)
 - FR-3.6 Rank table, sortable, exportable to CSV
+- FR-3.7 Per-neighborhood table carrying income, grocery, school and healthcare access
+  beside the cultural-institution count, for every residential NTA
+- FR-3.7a Where a quality rating exists for an amenity, show it as its own sortable
+  column distinct from the access count — stores by inspection grade, schools by
+  proficiency. Never fold a rating and a count into one score
+- FR-3.8 The institution count expands in place to list the institutions behind it,
+  each with its discipline or facility type
+- FR-3.9 Access-gap panel contrasting the least- and best-served fifth of
+  neighborhoods on each socioeconomic measure, pooled across each group
 
 ### FR-4 Transparency
 - FR-4.1 Persistent Limitations panel sourced from 007

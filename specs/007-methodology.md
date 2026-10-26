@@ -118,11 +118,29 @@ Any model or bivariate view must adjust for, or at minimum display alongside:
 | Commercial/daytime population | FacDB commercial counts (proxy) | Separates "busy" from "dangerous" |
 | Policing intensity | Precinct-level arrests ÷ complaints | Partially separates enforcement from incidence |
 
+**Partially measured since the amenity stage:** school outcomes, grocery access and
+healthcare access are now carried per neighborhood (002 §8-10). They are *displayed
+alongside*, not entered into the confounder model — see §5.1.
+
 **Unmeasured and acknowledged:** collective efficacy, historical redlining and
-disinvestment, public housing siting policy, gentrification trajectory, school quality.
+disinvestment, public housing siting policy, gentrification trajectory.
 Redlining in particular is a common cause of *both* low cultural investment and high
 violence today, and its omission means residual confounding is certain, not merely
 possible.
+
+### 5.1 Why amenities are displayed rather than controlled for
+
+Groceries, schools and clinics are **not** added to the confounder model, and that
+is deliberate. They are not prior causes of institution siting competing with
+income — they are, like cultural institutions, downstream of the same history of
+investment and disinvestment. Regressing crime on cultural access while holding
+supermarket density constant would be controlling for a collider-ish sibling, and
+would strip out variance that belongs to the thing being described.
+
+So they sit beside the analysis rather than inside it. The access-gap panel
+*describes two groups of neighborhoods*; it makes no adjustment and claims no
+effect. The confounder model (§5) remains income, poverty, density, age structure
+and tenure.
 
 ## 6. Threats to validity
 
@@ -152,6 +170,40 @@ affected NTAs are flagged.
 under-counts informal cultural space most severely in low-income neighborhoods — the
 same neighborhoods the project is about. This biases the measured exposure downward
 exactly where accuracy matters most.
+
+**Self-report in the grocery measure.** The supermarket count rests on
+`square_footage`, which licensees state and nobody audits — one donut shop in the
+file claims 20,000 sq ft. The measure is used because floor area is the only
+citywide signal separating a supermarket from a bodega, and because the error has
+no evident correlation with neighborhood income; an income-correlated error would
+bias the very comparison the panel draws, and this one is believed not to. That
+belief is an assumption, not a finding.
+
+**A sanitation grade is not a food-quality rating.** The store-grade column
+measures whether a shop is clean and storing food safely. A neighborhood where
+every store passes inspection may still have no fresh produce at any price, and
+nothing in this dataset would show it. The column is labelled for what it
+measures, and the gap panel's note repeats the limit, because "food stores
+passing inspection" invites the reading "good groceries" and that reading is
+wrong.
+
+**Schools are places, not pupils.** The school figure is the outcome of schools
+*located in* a neighborhood, weighted by the students they test. New York City
+has extensive school choice and screened admission, so a substantial share of
+those students live elsewhere, and a substantial share of the neighborhood's
+children attend elsewhere. It must never be read as "how the children who live
+here are doing."
+
+**Doors, not capacity.** The healthcare count is sites. It does not measure beds,
+staffing, opening hours, waiting times, or whether a clinic accepts a given
+insurance — all of which plausibly vary with neighborhood income in the same
+direction as the count, meaning the real access gap is likely *wider* than the
+one shown.
+
+**A pinned school-location vintage.** 2019-20 is the newest published location
+file, so 2.6% of schools with 2024 outcomes — mostly charters opened since 2020 —
+cannot be placed. If charter openings cluster by neighborhood type, their absence
+is not random. The count is reported rather than absorbed.
 
 **Temporal mismatch.** Institution data is a current snapshot; crime data spans years.
 A 2026 institution list cannot explain 2010 crime. Longitudinal work requires institution

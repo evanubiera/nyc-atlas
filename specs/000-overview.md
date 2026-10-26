@@ -1,6 +1,6 @@
 # 000 — Project Overview
 
-**Project:** NYC Cultural Infrastructure & Neighborhood Safety Atlas
+**Project:** NYC Income and Cultural Institution gaps
 **Status:** Spec v1 — scaffold in progress
 **Last updated:** 2026-10-24
 

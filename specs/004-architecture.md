@@ -1,5 +1,6 @@
 # 004 — Architecture
 
+
 ## Monorepo layout
 
 ```
@@ -17,6 +18,30 @@ Dependency direction is strictly `web → shared ← bff`. The web client never 
 Socrata or the Census API directly: upstream rate limits, API tokens, 4.38 MB geometry
 payloads and CORS all need to be handled server-side, and the BFF is where the
 association-vs-causation framing is enforced in the contract.
+
+## Module layout
+
+Each ingest source is one module with one job, and the pieces that every source
+needs live in `bff/src/common/`:
+
+| Module | Owns |
+|---|---|
+| `common/rejection-log` | counts of what each stage refused, and why |
+| `common/nta-locator` | upstream code first, point-in-polygon fallback |
+| `common/geo-point` | coordinates out of a georeference or lat/lon fields |
+| `amenities/food-stores` | licensed stores, supermarket threshold |
+| `amenities/store-grades` | deficiency-row collapse, current grade per store |
+| `amenities/healthcare` | care sites, hospital classification |
+| `amenities/schools` | DBN join, subject pooling, deterministic roll-up |
+| `metrics/neighborhood-row` | one joined row, including its exclusion |
+| `metrics/group-pooling` | pooled rates and weighted means over a group |
+| `metrics/confounder-model` | the design matrix, shared by fit and partial r |
+| `metrics/access-gaps` | quintile split and the gap measures |
+
+The services orchestrate; the modules compute. That split is what makes the
+analysis testable without standing up Nest, and `NtaLocator` depends on a narrow
+`NeighborhoodIndex` interface rather than the whole geography service for the
+same reason.
 
 ## The central problem: assigning crimes to neighborhoods
 

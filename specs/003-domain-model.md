@@ -141,6 +141,21 @@ interface NeighborhoodMetrics {
     walkableAccessShare: number | null; // 0..1, pop within 800 m
   };
 
+  /** What a resident can reach. Independent of the Census key. */
+  amenities: {
+    foodStoreCount: number;
+    supermarketCount: number;            // >= 10,000 sq ft
+    supermarketsPer10k: number | null;
+    gradedStoreCount: number;          // stores with a current inspection
+    gradeAStoreCount: number;
+    storeGradeShare: number | null;    // 0..1, sanitation — not food quality
+    healthcareSiteCount: number;         // FacDB hospitals and clinics
+    healthcareSitesPer10k: number | null;
+    schoolCount: number;
+    schoolStudents: number;              // integer: students, not test sittings
+    schoolProficiency: number | null;    // 0..1, ELA+Math, student-weighted
+  };
+
   denominatorWarning: 'DAYTIME_POPULATION_DOMINANT' | null;
   dataQuality: { rejectedRows: number; notes: string[] };
 }
@@ -152,6 +167,44 @@ type ExposureMeasure = 'DENSITY' | 'PER_CAPITA' | 'ACCESS';
 `smoothedRatePer100k` is separate from `ratePer100k` deliberately: the raw rate is shown
 in tooltips for honesty, the smoothed rate drives the color scale, because a single
 shooting in a 4,000-person NTA otherwise dominates the palette (007 §7).
+
+`amenities` carries raw counts *and* their per-10k forms. The counts are what the
+table shows on hover and what group figures are pooled from; the rates are what a
+single neighborhood is read by. Deriving one from the other at the point of use
+would scatter the `population === null` check across every consumer.
+
+`schoolProficiency` is `null`, never `0`, where no school reported — three
+residential NTAs. Zero would read as "every student failed" and would drag any
+average it touched. `storeGradeShare` is `null` on the same principle: no
+inspected store is not the same as every store failing.
+
+**Access and rating are separate fields on purpose.** `supermarketsPer10k` says
+how many stores a resident can reach; `storeGradeShare` says what condition they
+are in. A neighborhood can score well on one and badly on the other, and
+collapsing them into a single "grocery score" would hide exactly that case.
+Healthcare deliberately has no rating counterpart — see 007 §6.
+
+### AccessGaps
+
+The least- and best-served fifths of neighborhoods by cultural access, described
+side by side. One measure per row, each carrying how it was pooled.
+
+```ts
+interface AccessGapMeasure {
+  key: string;
+  label: string;
+  unit: 'USD' | 'PER_10K' | 'SHARE';
+  lowest: number | null;    // pooled across the least-served fifth
+  highest: number | null;   // pooled across the best-served fifth
+  ratio: number | null;     // highest / lowest; null if either side is absent
+  higherIsBetter: boolean;  // poverty and income move in opposite directions
+  note: string;             // how it was pooled, and what it does not say
+}
+```
+
+`higherIsBetter` exists because a ratio alone is directionless: 0.72 is an
+improvement for poverty and a deficit for income. The UI phrases the gap from
+this field rather than inferring it from the sign.
 
 ## Provenance
 

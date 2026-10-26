@@ -14,10 +14,45 @@ Each view's chart type follows from the data's job, not from preference.
 | Residual map | **Polarity** — more/less crime than predicted | Diverging choropleth |
 | Neighborhood detail | A few headline values | Stat tiles, not charts |
 | Category composition | Part-to-whole over one neighborhood | Stacked bar, single row |
+| Access gaps | Two groups compared, per measure | **Dumbbell, one per measure** |
+| Every neighborhood | Identity + many measures at once | **Table** |
 
 The neighborhood detail panel deliberately uses **stat tiles rather than charts**. Four
 numbers for one neighborhood — population, rate, CI, institution count — is not chart
 data; a bar chart of four unrelated quantities would be decoration.
+
+### The access-gap panel is small multiples, not one chart
+
+Five measures, two groups each. The measures share no unit — dollars, stores per
+10,000 residents, a share of students — so **each row is its own chart with its own
+scale**, and both ends carry a direct value label. Putting income and supermarket
+density on one axis would be the dual-axis error wearing a different shape: the
+alignment would be arbitrary and would manufacture a comparison the data does not
+contain.
+
+Each row is normalised to its own maximum, which means bar *length* is only ever
+comparable within a row. That is acceptable precisely because the labels are
+always present; the geometry carries the direction and the size of the gap, the
+labels carry the quantity.
+
+The gap headline is phrased from `higherIsBetter`, not from the sign of the
+ratio. "0.72×" is an improvement for poverty and a deficit for income, and a
+reader should not have to work out which.
+
+### The table is a first-class view, not a fallback
+
+`NeighborhoodTable` is both the per-neighborhood detail view and the **table-view
+twin** that 006's accessibility section requires of every chart. Every value the
+choropleth and the gap panel encode in color or position is legible there as a
+number, sortable, for all 197 neighborhoods.
+
+Its institution cell is a disclosure: the count expands in place to the full list
+of institutions in that neighborhood, with each venue's discipline or facility
+type. The count alone answers "how many"; the expansion answers "which", which is
+the question a reader actually has about their own neighborhood. The disclosure
+triangle is drawn with borders rather than set as a glyph — at 8px a text
+triangle renders as an indeterminate smudge and reads as a stray dot beside the
+number.
 
 ## Color
 
@@ -46,6 +81,27 @@ For "observed minus predicted after confounder adjustment," polarity is the data
 so a diverging scale is correct: blue = fewer incidents than the confounder model
 predicts, red = more, neutral gray (`#f0efec` light / `#383835` dark) at zero. Equal
 step count per arm; **no hue at the midpoint**.
+
+### Access-gap dumbbell — one hue, two shades
+
+A paired before/after comparison takes **one hue in two shades**, not two
+categorical hues: the two ends are one ordered measure, not two identities, and
+spending a categorical slot on them would be a category error as well as a waste.
+
+Each mode's steps are chosen against that mode's surface rather than flipped, and
+validated as an ordinal ramp:
+
+| Mode | Least-served | Best-served | Light-end contrast | Result |
+|---|---|---|---|---|
+| light | `#5598e7` | `#104281` | 2.91:1 | PASS |
+| dark | `#3987e5` | `#cde2fb` | 4.79:1 | PASS |
+
+`#9ec5f4` was the first choice for the light-mode low end and **failed** at
+1.74:1 against the light surface, below the 2:1 ordinal floor. It was snapped to
+the next step down the ramp rather than kept and excused.
+
+Both ends carry direct value labels regardless, so the shade never has to carry
+the number alone.
 
 ### Categorical — fixed order, capped at 3
 
@@ -144,8 +200,12 @@ surface, not a static image.
 
 ## Accessibility
 
-- A **table view** toggle exists for every chart — also the relief mechanism for the
+- A **table view** exists for every chart — `NeighborhoodTable` is the standing one,
+  always visible rather than behind a toggle. Also the relief mechanism for the
   sub-3:1 light aqua slot
+- The institution disclosure is a real `button` carrying `aria-expanded` and
+  `aria-controls`; sortable headers carry `aria-sort`. Its hit target clears 24px
+  on a dense row
 - Texture fill (45° / 135° hand-drawn lines) available for CVD, print and
   `forced-colors`; ordered by magnitude on value scales. Never on by default
 - Keyboard: NTAs traversable in a defined order with arrow keys; Enter opens the

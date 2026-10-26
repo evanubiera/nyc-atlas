@@ -100,6 +100,48 @@ enum AnalysisGeography { NTA CDTA }
 enum DenominatorWarning { DAYTIME_POPULATION_DOMINANT }
 ```
 
+## Access gaps
+
+```graphql
+enum GapUnit { USD PER_10K SHARE }
+
+type AccessGapMeasure {
+  key: String!
+  label: String!
+  unit: GapUnit!
+  lowest: Float          # pooled across the least-served fifth
+  highest: Float         # pooled across the best-served fifth
+  ratio: Float           # highest / lowest
+  higherIsBetter: Boolean!
+  note: String!          # how it was pooled, and what it does not say
+}
+
+type AccessGapGroup {
+  neighborhoodCount: Int!
+  population: Int!
+  institutionsPer10k: Float
+  examples: [String!]!
+}
+
+type AccessGapsPayload {
+  measures: [AccessGapMeasure!]!
+  least: AccessGapGroup!
+  most: AccessGapGroup!
+  exposureLabel: String!
+  amenitiesAvailable: Boolean!
+  demographicsAvailable: Boolean!
+  caveats: [String!]!
+}
+
+type Query {
+  accessGaps(input: MetricsInput!): AccessGapsPayload!
+}
+```
+
+`accessGaps` takes the same `MetricsInput` as `metrics`, so the contrast always
+describes the slice the rest of the page is showing — change the institution
+scope and the two groups are re-cut, not merely re-labelled.
+
 ## Contract decisions
 
 **`caveats` and `interpretation` are non-nullable.** A client cannot retrieve a
@@ -114,5 +156,23 @@ legend and the scatter. Computing them client-side in three places guarantees dr
 
 **`incidents` requires a bbox and caps rows.** There are hundreds of thousands of
 points; an unbounded query is a foot-gun. Aggregates come from `metrics`.
+
+**`note` on every gap measure is non-nullable,** for the same reason as
+`interpretation`. Each of these numbers is a proxy with a specific weakness —
+self-reported floor area, schools rather than pupils, doors rather than capacity
+— and a client cannot render the figure without having been handed the caveat.
+
+**`accessGaps` is a separate query, not a field on `metrics`.** It re-cuts the
+neighborhoods into quintiles and pools across them; folding it into `metrics`
+would make every map pan pay for an aggregation the map never shows.
+
+**Amenity fields on `NeighborhoodMetric` are not nullable as counts.** A
+neighborhood with no supermarket has `supermarketCount: 0`; the *rate* is null
+only when population is. Every residential NTA gets a row at ingest, so a zero is
+a measured zero rather than a failed join.
+
+**`schoolStudents` is an `Int`.** Pooling two subjects per school produces halves,
+which GraphQL's `Int` rejects at serialisation — and it rejects the *whole query*,
+not the field. The count is rounded at ingest and defensively again on read.
 
 **No mutations in v1.** The app is read-only over public data.

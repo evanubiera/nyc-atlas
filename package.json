@@ -2,7 +2,7 @@
   "name": "nyc-census-app",
   "version": "0.1.0",
   "private": true,
-  "description": "NYC Cultural Infrastructure & Neighborhood Safety Atlas",
+  "description": "NYC Income and Cultural Institution gaps",
   "license": "MIT",
   "engines": {
     "node": ">=20.0.0"

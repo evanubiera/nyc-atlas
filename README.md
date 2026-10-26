@@ -1,8 +1,15 @@
-# NYC Cultural Infrastructure & Neighborhood Safety Atlas
+# NYC Income and Cultural Institution gaps
 
-An interactive 3D atlas mapping cultural institutions across New York City's
-neighborhoods alongside reported crime and shooting incidents, with the
-socioeconomic context that shapes both.
+An interactive atlas of how cultural institutions are distributed across New
+York City's neighborhoods, set against the things that track with them —
+household income, grocery access, school outcomes, healthcare access — and
+against reported crime and shootings.
+
+The page answers one question directly: the fifth of neighborhoods with the
+fewest cultural institutions per resident, and the fifth with the most, differ
+by **31× in institutions** but only **1.7× in income**, **1.5× in supermarkets**,
+**11 points in school proficiency** and **1.2× in clinics**. Which of those gaps
+is cause and which is consequence is exactly what this app refuses to assert.
 
 > **This application shows statistical association, not causation.** Cultural
 > institutions are disproportionately sited in wealthier, already-safer
@@ -34,13 +41,24 @@ Both are free and optional — copy `.env.example` to `.env` to use them.
 ## Layout
 
 ```
-packages/shared   Domain types, offense taxonomy, design tokens. Source of truth.
+packages/shared   Domain types, offense taxonomy, statistics, design tokens.
 packages/bff      NestJS + GraphQL. Owns all upstream I/O and aggregation.
+  common/           RejectionLog, NtaLocator, geo-point — shared by every stage
+  amenities/        groceries, store grades, healthcare, schools (one file each)
+  metrics/          row building, pooling, confounder model, access gaps
 packages/web      React + Redux + Webpack + deck.gl.
+  format/           value formatters, shared by the table and the gap panel
+  app/              shell, toolbar controls, status line, layout
+  features/         map, analysis (neighborhood-table, access-gaps), transparency
 specs/            The specification set — read 000 first.
 scripts/          verify-sources, spatial-join landmark test
 data/cache/       Deterministic ingest output (committed; raw dumps are not)
 ```
+
+Each collector and each pure helper is unit tested: 113 tests across the three
+packages, run by `npm test`. The BFF compiles its tests to `dist` like the shared
+package; the web package runs its `.ts` tests directly on Node's type stripping,
+so neither needs a bundler or a DOM to test the logic.
 
 ## Specs
 
@@ -72,7 +90,12 @@ dataset id, required field, or offense value drifts.
 | DCLA Cultural Organizations | `u35m-9t32` | Funded arts organizations |
 | Facilities Database (FacDB) | `ji82-xba5` | Libraries and cultural programs |
 | Tract → 2020 NTA equivalency | `hm78-6dwm` | Bridge for ACS data |
-| U.S. Census ACS 5-year | Census API | Socioeconomic confounders |
+| U.S. Census ACS 5-year | Census API | Income, poverty, education, tenure, age |
+| Retail Food Stores (NYS) | `9a8c-vfzj` | Grocery access — **on `data.ny.gov`** |
+| Food Safety Inspections | `d6dy-3h7r` | Grocery **rating** — **on `data.ny.gov`** |
+| School Quality Reports | `dnpx-dfnc` | School outcomes (ELA/Math proficiency) |
+| 2019–20 School Locations | `wg9x-4ke6` | DBN → coordinates for those outcomes |
+| Facilities Database (FacDB) | `ji82-xba5` | Also hospitals and clinics |
 
 ## Things that will bite you
 
@@ -94,6 +117,16 @@ Full detail in [specs/002](specs/002-data-sources.md).
   see [specs/004](specs/004-architecture.md).
 - **Impossible dates.** 58 complaint rows predate 2000; the minimum is `1016-04-30`.
 - **`833y-fsy8` is archived.** Most tutorials still reference it.
+- **Food retail is licensed by the State, not the City.** The only citywide
+  store inventory lives on `data.ny.gov`, so one dataset in the registry carries
+  its own `domain`. Its `square_footage` is self-reported at licensing and never
+  audited — one donut shop claims 20,000 sq ft. It is still the only signal that
+  separates a supermarket from a bodega; 6.8% of NYC stores clear 10,000 sq ft.
+- **School quality and school location are two datasets.** The quality file is
+  keyed by DBN with no coordinates; the newest published location vintage is
+  2019–20. 97.4% of schools with 2024 outcomes match; the rest are mostly
+  charters that opened after 2020, and they are reported as a rejection rather
+  than dropped quietly.
 
 ## Commands
 
@@ -122,6 +155,20 @@ cross-source dedupe; empirical-Bayes smoothed rates with Poisson intervals;
 confounder-adjusted residuals; quintile comparison; partial correlation; and
 four map encodings (outcome, residual, bivariate, 3D extrusion).
 
+**Amenity access** is joined per neighborhood with no Census key required:
+10,928 licensed food stores (697 of them supermarkets), a current State
+inspection grade for 11,675 of them, 1,256 hospitals and clinics, and 2024
+ELA/Math proficiency for 1,325 schools covering 366,214 students across 196 of
+the 197 residential NTAs.
+
+**Access and rating are separate columns.** Groceries are counted *and* graded;
+schools carry proficiency. Healthcare deliberately has no rating column — the
+only published one covers hospitals, which are 6% of care sites and absent from
+77% of neighborhoods, so the column would be blank almost everywhere. The `accessGaps` query contrasts
+the least- and best-served fifths; the on-page table lists every neighborhood
+with its income, groceries, schools, healthcare and institution count, each count
+expanding to the institutions behind it.
+
 **Needs a Census key to be meaningful.** Without `CENSUS_API_KEY` the pipeline
 degrades to *area density* rather than per-resident rates. In that mode the
 association runs backwards — institutions and incidents both concentrate in
@@ -134,5 +181,6 @@ CDTA re-aggregation for the MAUP check, the scatter view, and CSV export. See
 
 ## Attribution
 
-Data: NYC Open Data (NYPD, DCLA, DCP) and U.S. Census Bureau ACS.
+Data: NYC Open Data (NYPD, DCLA, DCP, DOE), NYS Department of Agriculture and
+Markets, and U.S. Census Bureau ACS.
 This application shows statistical associations and does not establish causation.

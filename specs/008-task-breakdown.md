@@ -16,12 +16,16 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 - [x] 1.1 Typed Socrata client: SoQL builder, pagination, retry with backoff, optional app token
 - [x] 1.2 Census ACS client, key optional, graceful degradation when absent
 - [x] 1.3 Tract→NTA2020 aggregation via `hm78-6dwm`; sum counts, weight medians
-- [x] 1.4 NTA geometry load + Turf simplification — **59 KB gzipped**, 94% reduction from 4.38 MB
+- [x] 1.4 NTA geometry load + Turf simplification — **122 KB gzipped**, 88% reduction from 4.38 MB
 - [x] 1.5 R-tree over NTA bboxes; exact PIP against **unsimplified** geometry — 12/12 landmark fixtures pass
 - [x] 1.6 Incident ingest with date validation (reject the 58 pre-2000 rows) and bbox guard
 - [x] 1.7 Institution unification: DCLA ∪ FacDB, dedupe on BBL + normalized name, scope resolution
 - [x] 1.8 Month-granularity aggregate cache, deterministic output (NFR-11)
 - [x] 1.9 Ingest quality report — rejected rows with reasons
+- [x] 1.11 Amenity ingest — grocery, healthcare and school-outcome join to NTA2020
+- [x] 1.12 Socrata host override, so the State-licensed food-store file can be read
+- [x] 1.13 Food-store inspection grades: collapse deficiency rows, keep the current inspection
+- [x] 1.14 Deterministic school roll-up (DBN order), so repeated ingests stay byte-identical
 - [ ] 1.10 Resumability from last completed page
 
 ## Phase 2 — Metrics
@@ -34,6 +38,8 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 - [x] 2.7 Partial correlation adjusting for the confounder set
 - [x] 2.8 Quintile analysis with CIs
 - [x] 2.9 Server-computed scale breaks (`ScaleHints`)
+- [x] 2.11 Pooled group figures (`pooledRate`, `weightedMean`) — tested in shared
+- [x] 2.12 Access-gap contrast: least- vs best-served fifth across five measures
 - [ ] 2.10 CDTA re-aggregation for the MAUP sensitivity check
 
 ## Phase 3 — GraphQL
@@ -42,6 +48,7 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 - [ ] 3.3 Request memoization, 15 min LRU
 - [ ] 3.4 Provenance and quality-report resolvers
 - [ ] 3.5 bbox-bounded, row-capped `incidents` resolver
+- [x] 3.6 `accessGaps` resolver; amenity fields on `NeighborhoodMetric`
 
 ## Phase 4 — Client foundation
 - [x] 4.1 Redux store, RTK Query GraphQL baseQuery via `graphql-request`
@@ -64,8 +71,10 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 - [x] 6.2 Quintile bar chart with CI whiskers
 - [x] 6.3 Bivariate choropleth + 2D legend
 - [x] 6.4 Residual (diverging) map after confounder adjustment
-- [ ] 6.5 Rank table, sortable, CSV export with attribution
-- [ ] 6.6 Table view toggle on every chart (accessibility + relief rule)
+- [~] 6.5 Rank table, sortable — done; **CSV export with attribution still to do**
+- [x] 6.6 Table view — `NeighborhoodTable` is standing rather than behind a toggle
+- [x] 6.7 Access-gap dumbbell panel, one scale per measure, validated shade pair
+- [x] 6.8 Institution disclosure: count expands in place to the venues behind it
 
 ## Phase 7 — Transparency
 - [x] 7.1 Persistent, non-dismissible limitations panel from 007
@@ -75,11 +84,11 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 - [ ] 7.5 Enforcement-driven category caveats inline
 
 ## Phase 8 — Hardening
-- [x] 8.1 Unit tests — category mapping (74 values, 11 tests) and PIP landmarks done; rate math and EB shrinkage pending
+- [x] 8.1 Unit tests — category mapping (74 values), PIP landmarks, rate math, EB shrinkage, and pooled group figures (36 tests)
 - [ ] 8.2 Build fails on an unmapped offense code
 - [ ] 8.3 Determinism test: ingest twice, diff byte-for-byte
 - [ ] 8.4 Performance: 60 fps with choropleth + 50k points
-- [ ] 8.5 Geometry payload budget check in CI
+- [x] 8.5 Geometry payload budget check in CI — `check-bundle-budget.mjs`, geometry and bundle
 - [ ] 8.6 Axe accessibility pass
 - [x] 8.7 README with setup, ingest and methodology summary
 
@@ -100,3 +109,6 @@ number. It needs tests against known-location fixtures before anything depends o
 | Census API key unavailable | Committed fallback cache; features degrade with a visible message |
 | Disk pressure (~8 GB free) | Aggregate at month granularity; never commit raw dumps; `data/raw/` gitignored |
 | Causal over-reading by users | Non-nullable caveats in the contract; limitations panel; associative copy only |
+| Self-reported store floor area is wrong | Threshold documented as a proxy; `verify:sources` warns if the supermarket share leaves the 2-15% band; error is not obviously income-correlated |
+| Pinned school-quality vintage goes stale | `verify:sources` fails if the pinned year vanishes and warns when a newer year publishes |
+| School outcomes read as "the children who live here" | Stated in the column tooltip, the measure note and 002 §9 — it is where the schools are, not where the pupils come from |
