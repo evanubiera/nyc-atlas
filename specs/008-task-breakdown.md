@@ -79,7 +79,7 @@ Dependency-ordered. `[x]` complete, `[~]` scaffolded (compiles, stub logic), `[ 
 ## Phase 7 — Transparency
 - [x] 7.1 Persistent, non-dismissible limitations panel from 007
 - [ ] 7.2 Per-NTA provenance display
-- [ ] 7.3 Quality report surfaced in the UI
+- [x] 7.3 Quality report surfaced in the UI — rows dropped, by dataset and reason
 - [x] 7.4 Attribution on every export — sources and the causation caveat ride in the file
 - [x] 7.5 Enforcement-driven category caveats inline, on the map and the table
 

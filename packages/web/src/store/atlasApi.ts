@@ -28,6 +28,21 @@ export interface ProvenanceData {
   datasets: { id: string; name: string; purpose: string; notes: string | null }[];
 }
 
+export interface QualityRejection {
+  dataset: string;
+  reason: string;
+  count: number;
+}
+
+export interface QualityReport {
+  generatedAt: string;
+  totalRowsProcessed: number;
+  recoveredViaFallback: number;
+  rejections: QualityRejection[];
+  unmappedOffenses: string[];
+  notes: string[];
+}
+
 export type OutcomeMode = 'RATE_PER_100K' | 'COUNT_PER_SQKM';
 
 export interface MetricsInput {
@@ -309,6 +324,28 @@ export const atlasApi = createApi({
       transformResponse: (r: { institutions: InstitutionPoint[] }) => r.institutions,
     }),
 
+    dataQualityReport: build.query<QualityReport | null, void>({
+      query: () => ({
+        document: gql`
+          query DataQualityReport {
+            dataQualityReport {
+              generatedAt
+              totalRowsProcessed
+              recoveredViaFallback
+              unmappedOffenses
+              notes
+              rejections {
+                dataset
+                reason
+                count
+              }
+            }
+          }
+        `,
+      }),
+      transformResponse: (r: { dataQualityReport: QualityReport | null }) => r.dataQualityReport,
+    }),
+
     provenance: build.query<ProvenanceData, void>({
       query: () => ({
         document: gql`
@@ -337,6 +374,7 @@ export const {
   useNeighborhoodsQuery,
   useGeometryQuery,
   useProvenanceQuery,
+  useDataQualityReportQuery,
   useMetricsQuery,
   useQuintilesQuery,
   useCorrelationQuery,

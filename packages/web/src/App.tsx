@@ -5,6 +5,7 @@ import { resolveTheme } from './theme/index.js';
 import { AtlasMap } from './features/map/AtlasMap.js';
 import { LimitationsPanel } from './features/transparency/LimitationsPanel.js';
 import { FloatingCategoryCaveat } from './features/transparency/CategoryCaveat.tsx';
+import { DataQualityPanel } from './features/transparency/DataQualityPanel.tsx';
 import { QuintileChart } from './features/analysis/QuintileChart.js';
 import { CorrelationSummary } from './features/analysis/CorrelationSummary.js';
 import { AccessGapsPanel } from './features/analysis/access-gaps/AccessGapsPanel.tsx';
@@ -75,6 +76,7 @@ export function App(): JSX.Element {
             <AccessGapsPanel input={input} />
             <QuintileChart input={input} />
             <CorrelationSummary input={input} />
+            <DataQualityPanel />
           </Side>
         </Body>
       </Shell>
