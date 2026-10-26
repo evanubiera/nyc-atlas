@@ -141,6 +141,12 @@ function toNeighborhood(r: NtaRecord): Neighborhood {
   };
 }
 
+/**
+ * Only the non-residential exclusion is decided here. The population-based one
+ * needs ACS data this resolver does not load, so it is applied in the metrics
+ * path instead; the threshold itself lives in shared so client and server
+ * cannot disagree about it.
+ */
 function buildExclusion(r: NtaRecord): Exclusion | null {
   if (!r.isResidential) {
     const label = NTA_TYPE_LABELS[r.ntatype] ?? 'Non-residential';
@@ -153,8 +159,6 @@ function buildExclusion(r: NtaRecord): Exclusion | null {
         `meaningless or infinite.`,
     };
   }
-  // Population-based exclusion is applied once ACS data is wired in; the
-  // threshold lives in shared so client and server agree.
   void MIN_POPULATION_FOR_RATE;
   return null;
 }

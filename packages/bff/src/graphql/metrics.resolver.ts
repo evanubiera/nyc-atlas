@@ -2,7 +2,9 @@ import { Args, Query, Resolver } from '@nestjs/graphql';
 import type { CrimeCategory, ExposureMeasure, InstitutionScope } from '@nyc-atlas/shared';
 import { MetricsService, type MetricsQuery } from '../metrics/metrics.service.js';
 import {
+  AccessGapsPayload,
   CorrelationPayload,
+  GapUnitEnum,
   InstitutionPoint,
   InstitutionScopeEnum,
   MetricsInput,
@@ -63,6 +65,26 @@ export class MetricsResolver {
     };
   }
 
+  @Query(() => AccessGapsPayload, {
+    description:
+      'The fifth of neighborhoods with the least cultural access per resident set against the ' +
+      'fifth with the most, on income, poverty, supermarkets, school proficiency and clinics. ' +
+      'Figures are pooled across each group so large and small neighborhoods are not weighted ' +
+      'alike. A description of two groups, not an effect of institutions.',
+  })
+  accessGaps(@Args('input') input: MetricsInput): AccessGapsPayload {
+    const result = this.metricsService.accessGaps(toQuery(input));
+    return {
+      ...result,
+      measures: result.measures.map((m) => ({
+        ...m,
+        unit: m.unit as unknown as GapUnitEnum,
+      })),
+      least: { ...result.least, examples: [...result.least.examples] },
+      most: { ...result.most, examples: [...result.most.examples] },
+    };
+  }
+
   @Query(() => CorrelationPayload, {
     description:
       'Raw and confounder-adjusted association between cultural access and the outcome. ' +
@@ -87,6 +109,7 @@ export class MetricsResolver {
       scope: i.scope,
       discipline: i.discipline,
       facilitySubgroup: i.facilitySubgroup,
+      facilityType: i.facilityType,
     }));
   }
 

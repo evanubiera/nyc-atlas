@@ -17,7 +17,6 @@ import { MetricsModule } from './metrics/metrics.module.js';
       autoSchemaFile: join(process.cwd(), 'schema.gql'),
       sortSchema: true,
       playground: false,
-      // Apollo's built-in Explorer; the v4 playground plugin is gone in Apollo 5.
       introspection: true,
     }),
     SocrataModule,

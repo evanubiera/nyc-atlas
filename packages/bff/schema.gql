@@ -2,6 +2,52 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type AccessGapGroup {
+  """A few neighborhoods from the group, largest first."""
+  examples: [String!]!
+  institutionsPer10k: Float
+  neighborhoodCount: Int!
+  population: Int!
+}
+
+"""One socioeconomic measure, contrasted across the two groups."""
+type AccessGapMeasure {
+  """True when a larger number is better for a resident."""
+  higherIsBetter: Boolean!
+
+  """Pooled value in the best-served fifth."""
+  highest: Float
+  key: String!
+  label: String!
+
+  """Pooled value in the least-served fifth."""
+  lowest: Float
+
+  """How this number was pooled, and what it does not say."""
+  note: String!
+
+  """
+  highest / lowest. Null when either side is missing or the floor is zero.
+  """
+  ratio: Float
+  unit: GapUnit!
+}
+
+"""
+The fifth of neighborhoods with the least cultural access set against the fifth with the most, on income, groceries, schools and healthcare. Figures are pooled across each group, not averaged across its neighborhoods.
+"""
+type AccessGapsPayload {
+  amenitiesAvailable: Boolean!
+  caveats: [String!]!
+  demographicsAvailable: Boolean!
+
+  """What the neighborhoods were ranked on."""
+  exposureLabel: String!
+  least: AccessGapGroup!
+  measures: [AccessGapMeasure!]!
+  most: AccessGapGroup!
+}
+
 """
 Runtime capability report — what is available with current credentials.
 """
@@ -104,9 +150,23 @@ enum ExposureMeasure {
   PER_CAPITA
 }
 
+"""
+How a gap measure should be formatted: dollars, a count per 10,000, or a share.
+"""
+enum GapUnit {
+  PER_10K
+  SHARE
+  USD
+}
+
 type InstitutionPoint {
   discipline: String
   facilitySubgroup: String
+
+  """
+  FacDB factype. Preferred over facilitySubgroup for display: 83% of cultural facilities share the subgroup OTHER CULTURAL INSTITUTIONS.
+  """
+  facilityType: String
   id: String!
   lat: Float!
   lon: Float!
@@ -169,6 +229,19 @@ type NeighborhoodMetric {
   confidenceInterval: [Float!]
   excluded: ExclusionNote
   exposureValue: Float
+
+  """Licensed food stores of any size."""
+  foodStoreCount: Int!
+
+  """Of those, how many hold the top grade."""
+  gradeAStoreCount: Int!
+
+  """Food stores carrying a current State inspection grade."""
+  gradedStoreCount: Int!
+
+  """FacDB hospitals, clinics and diagnostic & treatment centers."""
+  healthcareSiteCount: Int!
+  healthcareSitesPer10k: Float
   institutionCount: Int!
   institutionsPer10k: Float
   institutionsPerSqKm: Float!
@@ -189,8 +262,31 @@ type NeighborhoodMetric {
   """
   residual: Float
 
+  """Elementary/middle schools with published 2024 proficiency."""
+  schoolCount: Int!
+
+  """
+  Student-weighted share of students at NY State Level 3-4, ELA and Math pooled. Describes where a neighborhood's schools sit, not where its children go.
+  """
+  schoolProficiency: Float
+
+  """Students those schools tested — the weight behind proficiency."""
+  schoolStudents: Int!
+  shareBachelorsOrHigher: Float
+
   """Empirical-Bayes shrunk. Drives the color scale."""
   smoothedRatePer100k: Float
+
+  """
+  Share of graded food stores holding the top State inspection grade. A sanitation result — whether a store is clean and storing food safely — not a measure of what it sells or charges. Null where no store here has a current inspection.
+  """
+  storeGradeShare: Float
+
+  """
+  Licensed food stores of 10,000 sq ft or more — the conventional supermarket threshold. Floor area is self-reported at licensing and never audited.
+  """
+  supermarketCount: Int!
+  supermarketsPer10k: Float
 }
 
 """
@@ -228,6 +324,11 @@ type QualityReportPayload {
 }
 
 type Query {
+  """
+  The fifth of neighborhoods with the least cultural access per resident set against the fifth with the most, on income, poverty, supermarkets, school proficiency and clinics. Figures are pooled across each group so large and small neighborhoods are not weighted alike. A description of two groups, not an effect of institutions.
+  """
+  accessGaps(input: MetricsInput!): AccessGapsPayload!
+
   """What this deployment can actually do with its current credentials."""
   capabilities: Capabilities!
 

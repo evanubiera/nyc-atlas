@@ -94,6 +94,54 @@ export class NeighborhoodMetric {
 
   @Field(() => Float, { nullable: true }) medianHouseholdIncome?: number | null;
   @Field(() => Float, { nullable: true }) povertyRate?: number | null;
+  @Field(() => Float, { nullable: true }) shareBachelorsOrHigher?: number | null;
+
+  @Field(() => Int, { description: 'Licensed food stores of any size.' })
+  foodStoreCount!: number;
+
+  @Field(() => Int, {
+    description:
+      'Licensed food stores of 10,000 sq ft or more — the conventional supermarket threshold. ' +
+      'Floor area is self-reported at licensing and never audited.',
+  })
+  supermarketCount!: number;
+
+  @Field(() => Float, { nullable: true }) supermarketsPer10k?: number | null;
+
+  @Field(() => Int, { description: 'Food stores carrying a current State inspection grade.' })
+  gradedStoreCount!: number;
+
+  @Field(() => Int, { description: 'Of those, how many hold the top grade.' })
+  gradeAStoreCount!: number;
+
+  @Field(() => Float, {
+    nullable: true,
+    description:
+      'Share of graded food stores holding the top State inspection grade. A sanitation ' +
+      'result — whether a store is clean and storing food safely — not a measure of what it ' +
+      'sells or charges. Null where no store here has a current inspection.',
+  })
+  storeGradeShare?: number | null;
+
+  @Field(() => Int, { description: 'FacDB hospitals, clinics and diagnostic & treatment centers.' })
+  healthcareSiteCount!: number;
+
+  @Field(() => Float, { nullable: true }) healthcareSitesPer10k?: number | null;
+
+  @Field(() => Int, { description: 'Elementary/middle schools with published 2024 proficiency.' })
+  schoolCount!: number;
+
+  @Field(() => Int, { description: 'Students those schools tested — the weight behind proficiency.' })
+  schoolStudents!: number;
+
+  @Field(() => Float, {
+    nullable: true,
+    description:
+      'Student-weighted share of students at NY State Level 3-4, ELA and Math pooled. Describes ' +
+      'where a neighborhood\'s schools sit, not where its children go.',
+  })
+  schoolProficiency?: number | null;
+
   @Field(() => Boolean) isEnforcementDriven!: boolean;
   @Field(() => ExclusionNote, { nullable: true }) excluded?: ExclusionNote | null;
 }
@@ -168,6 +216,14 @@ export class InstitutionPoint {
   @Field(() => String) scope!: string;
   @Field(() => String, { nullable: true }) discipline?: string | null;
   @Field(() => String, { nullable: true }) facilitySubgroup?: string | null;
+
+  @Field(() => String, {
+    nullable: true,
+    description:
+      'FacDB factype. Preferred over facilitySubgroup for display: 83% of cultural facilities ' +
+      'share the subgroup OTHER CULTURAL INSTITUTIONS.',
+  })
+  facilityType?: string | null;
 }
 
 @ObjectType()
@@ -185,4 +241,65 @@ export class QualityReportPayload {
   @Field(() => [String]) unmappedOffenses!: string[];
   @Field(() => Int) recoveredViaFallback!: number;
   @Field(() => [String]) notes!: string[];
+}
+
+export enum GapUnitEnum {
+  USD = 'USD',
+  PER_10K = 'PER_10K',
+  SHARE = 'SHARE',
+}
+registerEnumType(GapUnitEnum, {
+  name: 'GapUnit',
+  description: 'How a gap measure should be formatted: dollars, a count per 10,000, or a share.',
+});
+
+@ObjectType({ description: 'One socioeconomic measure, contrasted across the two groups.' })
+export class AccessGapMeasure {
+  @Field(() => String) key!: string;
+  @Field(() => String) label!: string;
+  @Field(() => GapUnitEnum) unit!: GapUnitEnum;
+
+  @Field(() => Float, { nullable: true, description: 'Pooled value in the least-served fifth.' })
+  lowest?: number | null;
+
+  @Field(() => Float, { nullable: true, description: 'Pooled value in the best-served fifth.' })
+  highest?: number | null;
+
+  @Field(() => Float, {
+    nullable: true,
+    description: 'highest / lowest. Null when either side is missing or the floor is zero.',
+  })
+  ratio?: number | null;
+
+  @Field(() => Boolean, { description: 'True when a larger number is better for a resident.' })
+  higherIsBetter!: boolean;
+
+  @Field(() => String, { description: 'How this number was pooled, and what it does not say.' })
+  note!: string;
+}
+
+@ObjectType()
+export class AccessGapGroup {
+  @Field(() => Int) neighborhoodCount!: number;
+  @Field(() => Int) population!: number;
+  @Field(() => Float, { nullable: true }) institutionsPer10k?: number | null;
+  @Field(() => [String], { description: 'A few neighborhoods from the group, largest first.' })
+  examples!: string[];
+}
+
+@ObjectType({
+  description:
+    'The fifth of neighborhoods with the least cultural access set against the fifth with the ' +
+    'most, on income, groceries, schools and healthcare. Figures are pooled across each group, ' +
+    'not averaged across its neighborhoods.',
+})
+export class AccessGapsPayload {
+  @Field(() => [AccessGapMeasure]) measures!: AccessGapMeasure[];
+  @Field(() => AccessGapGroup) least!: AccessGapGroup;
+  @Field(() => AccessGapGroup) most!: AccessGapGroup;
+  @Field(() => String, { description: 'What the neighborhoods were ranked on.' })
+  exposureLabel!: string;
+  @Field(() => Boolean) amenitiesAvailable!: boolean;
+  @Field(() => Boolean) demographicsAvailable!: boolean;
+  @Field(() => [String]) caveats!: string[];
 }
