@@ -11,11 +11,34 @@ import { GraphQLClient, type RequestDocument } from 'graphql-request';
  */
 declare const process: { env: { GRAPHQL_ENDPOINT?: string } };
 
-function resolveEndpoint(): string {
-  const configured = process.env.GRAPHQL_ENDPOINT;
+/** Written into index.html by the container entrypoint before the bundle runs. */
+declare global {
+  interface Window {
+    __ATLAS_CONFIG__?: { graphqlEndpoint?: string };
+  }
+}
+
+/** The placeholder as it appears in the template when nothing replaced it. */
+const UNSUBSTITUTED = '__GRAPHQL_ENDPOINT__';
+
+/**
+ * Resolution order: runtime config, then the build-time value, then the same
+ * origin.
+ *
+ * Runtime wins so that one built image can be promoted across clusters.
+ * Compiling the endpoint in would mean a separate build per environment, and
+ * therefore shipping an artifact nobody tested. The build-time value is kept
+ * for `npm run dev`, where there is no entrypoint to substitute anything.
+ */
+export function resolveEndpoint(): string {
+  const runtime =
+    typeof window !== 'undefined' ? window.__ATLAS_CONFIG__?.graphqlEndpoint : undefined;
+  const configured =
+    runtime && runtime !== UNSUBSTITUTED ? runtime : process.env.GRAPHQL_ENDPOINT;
+
   if (configured && /^https?:\/\//.test(configured)) return configured;
 
-  const path = configured ?? '/graphql';
+  const path = configured && configured !== UNSUBSTITUTED ? configured : '/graphql';
   return typeof window !== 'undefined' ? new URL(path, window.location.origin).toString() : path;
 }
 

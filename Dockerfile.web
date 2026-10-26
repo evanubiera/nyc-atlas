@@ -1,0 +1,42 @@
+# syntax=docker/dockerfile:1
+
+# ---------------------------------------------------------------------------
+# The static client, served by nginx.
+#
+# The bundle is built once and is byte-identical in every environment. What
+# differs between clusters is substituted into index.html at container start,
+# so the artifact that was tested is the artifact that ships.
+# ---------------------------------------------------------------------------
+
+FROM node:24-bookworm-slim AS build
+WORKDIR /repo
+
+COPY package.json package-lock.json ./
+COPY packages/shared/package.json packages/shared/
+COPY packages/bff/package.json packages/bff/
+COPY packages/web/package.json packages/web/
+RUN npm ci
+
+COPY tsconfig.base.json ./
+COPY packages/shared packages/shared
+COPY packages/web packages/web
+
+# No GRAPHQL_ENDPOINT here on purpose: leaving it unset keeps the placeholder
+# in index.html for the entrypoint to fill, which is what makes the image
+# environment-agnostic.
+RUN npm run build -w @nyc-atlas/shared && npm run build -w @nyc-atlas/web
+
+# Unprivileged by default and listens on 8080, so no capability is needed to
+# bind the port.
+FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
+
+COPY --from=build /repo/packages/web/dist /usr/share/nginx/html
+COPY docker/nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY docker/20-runtime-config.sh /docker-entrypoint.d/20-runtime-config.sh
+
+# Same-origin by default: the page calls /graphql and nginx proxies it.
+ENV BFF_ORIGIN=http://bff:4000
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD ["sh", "-c", "wget -q -O /dev/null http://127.0.0.1:8080/index.html || exit 1"]

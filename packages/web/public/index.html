@@ -8,6 +8,18 @@
       content="Mapping cultural institutions and reported crime across New York City neighborhoods. Shows statistical associations, not causation."
     />
     <title><%= htmlWebpackPlugin.options.title %></title>
+
+    <!--
+      Runtime configuration, substituted by the container entrypoint on start.
+      It lives here rather than being compiled into the bundle so that one
+      built image can be promoted across environments: baking the endpoint at
+      build time would mean a separate build, and therefore a separate
+      untested artifact, for every cluster. Left as-is when nothing
+      substitutes it, which the code reads as "use the same origin".
+    -->
+    <script>
+      window.__ATLAS_CONFIG__ = { graphqlEndpoint: '__GRAPHQL_ENDPOINT__' };
+    </script>
   </head>
   <body>
     <div id="root"></div>

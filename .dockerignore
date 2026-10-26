@@ -1,0 +1,17 @@
+# Build inputs only. Everything here is either reproducible, local, or secret.
+node_modules
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+
+.git
+.github
+.env
+.env.local
+
+data/raw
+data/cache/ingest-resume.json
+
+scripts/test-spatial-join.py
+**/*.log
+.DS_Store

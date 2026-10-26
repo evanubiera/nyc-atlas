@@ -1,0 +1,62 @@
+# syntax=docker/dockerfile:1
+
+# ---------------------------------------------------------------------------
+# The GraphQL BFF.
+#
+# The ingest caches are copied into the image rather than mounted. They are
+# committed, deterministic and about 3 MB, so baking them makes each image
+# self-contained and reproducible: the figures a container serves are fixed by
+# the commit it was built from, which is what lets the same artifact be
+# promoted across clusters and compared between them.
+# ---------------------------------------------------------------------------
+
+FROM node:24-bookworm-slim AS build
+WORKDIR /repo
+
+# Manifests first, so a dependency-free change reuses the install layer.
+COPY package.json package-lock.json ./
+COPY packages/shared/package.json packages/shared/
+COPY packages/bff/package.json packages/bff/
+COPY packages/web/package.json packages/web/
+RUN npm ci
+
+COPY tsconfig.base.json ./
+COPY packages/shared packages/shared
+COPY packages/bff packages/bff
+RUN npm run build -w @nyc-atlas/shared && npm run build -w @nyc-atlas/bff
+
+# Drop dev dependencies from the tree that ships.
+RUN npm prune --omit=dev
+
+FROM node:24-bookworm-slim AS runtime
+
+# Stamped by CI so a running container can name the commit it was built from;
+# /healthz reports it.
+ARG GIT_SHA=unknown
+ENV GIT_SHA=${GIT_SHA}
+
+ENV NODE_ENV=production
+WORKDIR /app
+
+COPY --from=build /repo/node_modules ./node_modules
+COPY --from=build /repo/packages/shared/dist ./packages/shared/dist
+COPY --from=build /repo/packages/shared/package.json ./packages/shared/
+COPY --from=build /repo/packages/bff/dist ./packages/bff/dist
+COPY --from=build /repo/packages/bff/package.json ./packages/bff/
+COPY --from=build /repo/packages/bff/schema.gql ./packages/bff/
+COPY data/cache /app/data/cache
+
+# Absolute, because the working directory is no longer a hint about layout.
+ENV CACHE_DIR=/app/data/cache
+ENV PORT=4000
+EXPOSE 4000
+
+# Unprivileged: the image ships with a `node` user, and nothing here writes
+# outside /tmp at runtime.
+USER node
+
+# Readiness and liveness are served by the app; see src/health.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||4000)+'/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+
+CMD ["node", "packages/bff/dist/main.js"]
