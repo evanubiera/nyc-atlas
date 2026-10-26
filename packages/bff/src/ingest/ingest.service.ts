@@ -1,21 +1,47 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DATASETS } from '@nyc-atlas/shared';
 import { GeographyService } from '../geography/geography.service.js';
-import { IncidentsService, mergeAggregates } from '../incidents/incidents.service.js';
+import {
+  IncidentsService,
+  mergeAggregates,
+  type IncidentAggregate,
+} from '../incidents/incidents.service.js';
 import { InstitutionsService } from '../institutions/institutions.service.js';
+import { AmenitiesService } from '../amenities/amenities.service.js';
 import { CensusService } from '../census/census.service.js';
 import { CacheService } from '../cache/cache.service.js';
+import { IngestTally } from './ingest-tally.js';
 import {
   CACHE_FILES,
+  type AmenitiesCache,
   type DemographicsCache,
   type IncidentCache,
   type InstitutionCache,
-  type QualityReport,
 } from './ingest.types.js';
 
 export interface IngestOptions {
   /** Include the 2006-2019 historic complaint set (millions of rows). */
   includeHistoric?: boolean;
+}
+
+const HISTORIC_SKIPPED_NOTE =
+  'Historic complaints (2006-2019, qgea-i56i) were not ingested. ' +
+  'Run with --historic to include them; shootings already span 2006-present.';
+
+const NO_CENSUS_KEY_NOTE =
+  'No Census key: per-capita rates and confounder-adjusted views are unavailable.';
+
+const NO_CENSUS_KEY_REASON =
+  'CENSUS_API_KEY is not set. Rates and confounder adjustment require ' +
+  'population denominators from the ACS.';
+
+function transposedCoordinatesNote(repaired: number): string {
+  return (
+    `Repaired ${repaired.toLocaleString()} incident rows whose latitude and longitude ` +
+    `columns were transposed upstream. The Shootings dataset (5ucz-vwe8) ships every ` +
+    `record from 2006-01-01 to 2025-12-31 reversed; only 2026 additions are correct. ` +
+    `Without this repair 98.7% of shootings would be silently discarded.`
+  );
 }
 
 @Injectable()
@@ -27,6 +53,7 @@ export class IngestService {
     private readonly incidents: IncidentsService,
     private readonly institutions: InstitutionsService,
     private readonly census: CensusService,
+    private readonly amenities: AmenitiesService,
     private readonly cache: CacheService,
   ) {}
 
@@ -34,142 +61,135 @@ export class IngestService {
     const started = Date.now();
     await this.geography.load();
 
-    const rejections: QualityReport['rejections'] = [];
-    const unmapped = new Set<string>();
-    let totalRows = 0;
-    let recovered = 0;
-    let swapped = 0;
-    const notes: string[] = [];
+    const tally = new IngestTally();
 
-    // --- incidents ---------------------------------------------------------
-    const shootings = await this.incidents.ingestShootings();
-    totalRows += shootings.totalRows;
-    recovered += shootings.recoveredViaFallback;
-    swapped += shootings.coordinatesSwapped;
-    for (const [reason, count] of shootings.rejected) {
-      rejections.push({ dataset: DATASETS.shootings.id, reason, count });
+    await this.ingestIncidents(tally, options.includeHistoric === true);
+    await this.ingestInstitutions(tally);
+    await this.ingestAmenities(tally);
+    await this.ingestDemographics(tally);
+
+    if (tally.coordinatesRepaired > 0) {
+      tally.note(transposedCoordinatesNote(tally.coordinatesRepaired));
     }
+    await this.cache.write(CACHE_FILES.quality, tally.toQualityReport());
+
+    const elapsed = ((Date.now() - started) / 1000).toFixed(1);
+    this.logger.log(`Ingest complete in ${elapsed}s`);
+
+    this.failOnUnmappedOffenses(tally);
+  }
+
+  private async ingestIncidents(tally: IngestTally, includeHistoric: boolean): Promise<void> {
+    const shootings = await this.incidents.ingestShootings();
+    tally.absorbIncidents(DATASETS.shootings.id, shootings);
 
     const complaints = await this.incidents.ingestComplaints(
       DATASETS.complaintsCurrent.id,
       'current year-to-date',
     );
-    totalRows += complaints.totalRows;
-    recovered += complaints.recoveredViaFallback;
-    swapped += complaints.coordinatesSwapped;
-    for (const [reason, count] of complaints.rejected) {
-      rejections.push({ dataset: DATASETS.complaintsCurrent.id, reason, count });
-    }
-    for (const o of complaints.unmappedOffenses) unmapped.add(o);
+    tally.absorbIncidents(DATASETS.complaintsCurrent.id, complaints);
 
     let aggregate = mergeAggregates(shootings.aggregate, complaints.aggregate);
 
-    if (options.includeHistoric === true) {
+    if (includeHistoric) {
       const historic = await this.incidents.ingestComplaints(
         DATASETS.complaintsHistoric.id,
         'historic 2006-2019',
       );
-      totalRows += historic.totalRows;
-      recovered += historic.recoveredViaFallback;
-      swapped += historic.coordinatesSwapped;
-      for (const [reason, count] of historic.rejected) {
-        rejections.push({ dataset: DATASETS.complaintsHistoric.id, reason, count });
-      }
-      for (const o of historic.unmappedOffenses) unmapped.add(o);
+      tally.absorbIncidents(DATASETS.complaintsHistoric.id, historic);
       aggregate = mergeAggregates(aggregate, historic.aggregate);
     } else {
-      notes.push(
-        'Historic complaints (2006-2019, qgea-i56i) were not ingested. ' +
-          'Run with --historic to include them; shootings already span 2006-present.',
-      );
+      tally.note(HISTORIC_SKIPPED_NOTE);
     }
 
-    const months = collectMonths(aggregate);
-    const incidentCache: IncidentCache = {
-      aggregate,
-      earliestMonth: months.length > 0 ? (months[0] as string) : null,
-      latestMonth: months.length > 0 ? (months[months.length - 1] as string) : null,
-    };
-    await this.cache.write(CACHE_FILES.incidents, incidentCache);
+    await this.cache.write(CACHE_FILES.incidents, buildIncidentCache(aggregate));
+  }
 
-    // --- institutions ------------------------------------------------------
-    const { institutions, rejected: instRejected } = await this.institutions.fetchAll();
-    for (const [reason, count] of instRejected) {
-      rejections.push({ dataset: 'institutions', reason, count });
-    }
-    const institutionCache: InstitutionCache = { institutions };
-    await this.cache.write(CACHE_FILES.institutions, institutionCache);
+  private async ingestInstitutions(tally: IngestTally): Promise<void> {
+    const { institutions, rejected } = await this.institutions.fetchAll();
+    tally.absorbRejections('institutions', rejected);
 
-    // --- demographics ------------------------------------------------------
-    let demographicsCache: DemographicsCache;
-    if (this.census.isAvailable) {
-      try {
-        const byNta = await this.census.fetchNtaDemographics();
-        demographicsCache = {
-          byNta: Object.fromEntries(byNta),
-          available: byNta.size > 0,
-          unavailableReason: byNta.size > 0 ? null : 'ACS returned no rows',
-        };
-      } catch (err) {
-        this.logger.error(`ACS fetch failed: ${String(err)}`);
-        demographicsCache = {
-          byNta: {},
-          available: false,
-          unavailableReason: `ACS fetch failed: ${String(err)}`,
-        };
-      }
-    } else {
-      demographicsCache = {
-        byNta: {},
-        available: false,
-        unavailableReason:
-          'CENSUS_API_KEY is not set. Rates and confounder adjustment require ' +
-          'population denominators from the ACS.',
+    const cache: InstitutionCache = { institutions };
+    await this.cache.write(CACHE_FILES.institutions, cache);
+  }
+
+  /**
+   * Needs no credentials, so this stage is allowed to fail on its own without
+   * taking the rest of the ingest with it.
+   */
+  private async ingestAmenities(tally: IngestTally): Promise<void> {
+    let cache: AmenitiesCache;
+
+    try {
+      const amenities = await this.amenities.fetchAll();
+      tally.absorbRejections('amenities', amenities.rejected);
+      tally.note(...amenities.notes);
+      cache = {
+        byNta: Object.fromEntries(amenities.byNta),
+        available: amenities.byNta.size > 0,
+        unavailableReason: amenities.byNta.size > 0 ? null : 'amenity sources returned no rows',
       };
-      notes.push(
-        'No Census key: per-capita rates and confounder-adjusted views are unavailable.',
-      );
-    }
-    await this.cache.write(CACHE_FILES.demographics, demographicsCache);
-
-    // --- quality report ----------------------------------------------------
-    if (swapped > 0) {
-      notes.push(
-        `Repaired ${swapped.toLocaleString()} incident rows whose latitude and longitude ` +
-          `columns were transposed upstream. The Shootings dataset (5ucz-vwe8) ships every ` +
-          `record from 2006-01-01 to 2025-12-31 reversed; only 2026 additions are correct. ` +
-          `Without this repair 98.7% of shootings would be silently discarded.`,
-      );
+    } catch (err) {
+      this.logger.error(`Amenity fetch failed: ${String(err)}`);
+      cache = { byNta: {}, available: false, unavailableReason: `Amenity fetch failed: ${String(err)}` };
     }
 
-    const quality: QualityReport = {
-      generatedAt: new Date().toISOString(),
-      totalRowsProcessed: totalRows,
-      rejections: rejections.sort((a, b) => b.count - a.count),
-      unmappedOffenses: [...unmapped].sort(),
-      recoveredViaFallback: recovered,
-      coordinatesRepaired: swapped,
-      notes,
-    };
-    await this.cache.write(CACHE_FILES.quality, quality);
+    await this.cache.write(CACHE_FILES.amenities, cache);
+  }
 
-    const elapsed = ((Date.now() - started) / 1000).toFixed(1);
-    this.logger.log(`Ingest complete in ${elapsed}s`);
-    if (unmapped.size > 0) {
-      throw new Error(
-        `Ingest found ${unmapped.size} unmapped offense label(s): ${[...unmapped].join(', ')}. ` +
-          `Add them to packages/shared/src/crime-categories.ts.`,
-      );
+  private async ingestDemographics(tally: IngestTally): Promise<void> {
+    await this.cache.write(CACHE_FILES.demographics, await this.buildDemographicsCache(tally));
+  }
+
+  private async buildDemographicsCache(tally: IngestTally): Promise<DemographicsCache> {
+    if (!this.census.isAvailable) {
+      tally.note(NO_CENSUS_KEY_NOTE);
+      return { byNta: {}, available: false, unavailableReason: NO_CENSUS_KEY_REASON };
     }
+
+    try {
+      const byNta = await this.census.fetchNtaDemographics();
+      return {
+        byNta: Object.fromEntries(byNta),
+        available: byNta.size > 0,
+        unavailableReason: byNta.size > 0 ? null : 'ACS returned no rows',
+      };
+    } catch (err) {
+      this.logger.error(`ACS fetch failed: ${String(err)}`);
+      return { byNta: {}, available: false, unavailableReason: `ACS fetch failed: ${String(err)}` };
+    }
+  }
+
+  /**
+   * An unmapped offense label would silently become UNKNOWN and disappear from
+   * every category, so the run fails rather than writing a quietly wrong cache.
+   */
+  private failOnUnmappedOffenses(tally: IngestTally): void {
+    const unmapped = tally.unmapped;
+    if (unmapped.length === 0) return;
+
+    throw new Error(
+      `Ingest found ${unmapped.length} unmapped offense label(s): ${unmapped.join(', ')}. ` +
+        `Add them to packages/shared/src/crime-categories.ts.`,
+    );
   }
 }
 
-function collectMonths(agg: Record<string, Record<string, Record<string, number>>>): string[] {
-  const set = new Set<string>();
-  for (const cats of Object.values(agg)) {
-    for (const months of Object.values(cats)) {
-      for (const m of Object.keys(months)) set.add(m);
+function buildIncidentCache(aggregate: IncidentAggregate): IncidentCache {
+  const months = collectMonths(aggregate);
+  return {
+    aggregate,
+    earliestMonth: months[0] ?? null,
+    latestMonth: months[months.length - 1] ?? null,
+  };
+}
+
+function collectMonths(aggregate: IncidentAggregate): string[] {
+  const months = new Set<string>();
+  for (const categories of Object.values(aggregate)) {
+    for (const byMonth of Object.values(categories)) {
+      for (const month of Object.keys(byMonth)) months.add(month);
     }
   }
-  return [...set].sort();
+  return [...months].sort();
 }

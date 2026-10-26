@@ -13,13 +13,24 @@
 
 import {
   DATASETS,
+  FACDB_HEALTHCARE_SUBGROUP,
+  FOOD_GRADES,
+  FOOD_GRADE_PASS,
+  NYC_COUNTY_NAMES,
   OFFENSE_TO_CATEGORY,
   RESIDENTIAL_NTA_TYPE,
+  SCHOOL_PROFICIENCY_METRICS,
+  SCHOOL_QUALITY_REPORT_TYPE,
+  SCHOOL_QUALITY_YEAR,
+  SUPERMARKET_MIN_SQFT,
   isNullish,
 } from '../packages/shared/dist/index.js';
 
 const DOMAIN = 'https://data.cityofnewyork.us';
 const token = process.env.SOCRATA_APP_TOKEN;
+
+/** A dataset may name its own Socrata host; food retail is State-licensed. */
+const hostOf = (ds) => (ds.domain === undefined ? DOMAIN : `https://${ds.domain}`);
 
 const headers = token ? { 'X-App-Token': token } : {};
 let failures = 0;
@@ -48,9 +59,9 @@ async function getJson(url) {
   return res.json();
 }
 
-async function soql(id, params) {
+async function soql(id, params, host = DOMAIN) {
   const qs = new URLSearchParams(params).toString();
-  return getJson(`${DOMAIN}/resource/${id}.json?${qs}`);
+  return getJson(`${host}/resource/${id}.json?${qs}`);
 }
 
 // --- 1 & 2: dataset ids and required fields --------------------------------
@@ -59,7 +70,7 @@ console.log('\nDataset identity and schema\n');
 
 for (const [key, ds] of Object.entries(DATASETS)) {
   try {
-    const meta = await getJson(`${DOMAIN}/api/views/${ds.id}.json`);
+    const meta = await getJson(`${hostOf(ds)}/api/views/${ds.id}.json`);
     const liveName = meta.name ?? '(unnamed)';
 
     if (/^ARCHIVED/i.test(liveName)) {
@@ -73,7 +84,8 @@ for (const [key, ds] of Object.entries(DATASETS)) {
     if (missing.length > 0) {
       fail(`${key} (${ds.id}) missing required field(s): ${missing.join(', ')}`);
     } else {
-      pass(`${key} ${dim(`(${ds.id})`)} — ${ds.requiredFields.length} fields present`);
+      const where = ds.domain === undefined ? '' : ` ${dim(`@ ${ds.domain}`)}`;
+      pass(`${key} ${dim(`(${ds.id})`)}${where} — ${ds.requiredFields.length} fields present`);
       console.log(`       ${dim(liveName)}`);
     }
   } catch (err) {
@@ -162,6 +174,158 @@ try {
   }
 } catch (err) {
   fail(`NTA geography checks failed — ${err.message}`);
+}
+
+// --- 5: amenity assumptions -------------------------------------------------
+
+console.log('\nAmenity access assumptions\n');
+
+// Grocery access depends on a floor-area threshold against a self-reported
+// field. If either the field or the licence population shifts, the supermarket
+// count moves without any code changing.
+try {
+  const counties = NYC_COUNTY_NAMES.map((c) => `'${c}'`).join(',');
+  const host = `https://${DATASETS.retailFoodStores.domain}`;
+  const [{ n: all }] = await soql(
+    DATASETS.retailFoodStores.id,
+    { $select: 'count(1) as n', $where: `county in(${counties})` },
+    host,
+  );
+  const [{ n: big }] = await soql(
+    DATASETS.retailFoodStores.id,
+    {
+      $select: 'count(1) as n',
+      $where: `county in(${counties}) AND square_footage >= ${SUPERMARKET_MIN_SQFT}`,
+    },
+    host,
+  );
+
+  if (Number(all) === 0) {
+    fail(`no NYC retail food stores returned — check the county spellings`);
+  } else if (Number(big) === 0) {
+    fail(`no store clears ${SUPERMARKET_MIN_SQFT} sq ft — square_footage may have changed type`);
+  } else {
+    const share = (Number(big) / Number(all)) * 100;
+    pass(
+      `${Number(all).toLocaleString()} NYC food stores, ${Number(big).toLocaleString()} ` +
+        `at or above ${SUPERMARKET_MIN_SQFT.toLocaleString()} sq ft (${share.toFixed(1)}%)`,
+    );
+    if (share > 15 || share < 2) {
+      warn(`supermarket share of ${share.toFixed(1)}% is outside the observed 5-8% band`);
+    }
+  }
+} catch (err) {
+  fail(`retail food store checks failed — ${err.message}`);
+}
+
+// The store-grade measure assumes a fixed grade vocabulary and that the file is
+// one row per deficiency. A move to one row per establishment would not error —
+// it would silently change what the share means.
+try {
+  const counties = NYC_COUNTY_NAMES.map((c) => `'${c}'`).join(',');
+  const host = `https://${DATASETS.foodSafetyInspections.domain}`;
+  const where = `upper(county) in(${counties})`;
+
+  const grades = await soql(
+    DATASETS.foodSafetyInspections.id,
+    { $select: 'inspection_grade, count(1) as n', $group: 'inspection_grade' },
+    host,
+  );
+  const seen = grades.map((g) => (g.inspection_grade ?? '').trim().toUpperCase()).filter(Boolean);
+  const unknown = seen.filter((g) => !FOOD_GRADES.includes(g));
+
+  if (unknown.length > 0) {
+    fail(
+      `unexpected inspection grade(s) ${unknown.map((g) => JSON.stringify(g)).join(', ')} — ` +
+        `FOOD_GRADES in packages/shared/src/datasets.ts assumes ${FOOD_GRADES.join('/')}`,
+    );
+  } else if (!seen.includes(FOOD_GRADE_PASS)) {
+    fail(`the passing grade '${FOOD_GRADE_PASS}' no longer appears upstream`);
+  } else {
+    pass(`inspection grades are still ${seen.sort().join('/')}`);
+  }
+
+  const [{ n: rows }] = await soql(
+    DATASETS.foodSafetyInspections.id,
+    { $select: 'count(1) as n', $where: where },
+    host,
+  );
+  const [{ n: establishments }] = await soql(
+    DATASETS.foodSafetyInspections.id,
+    { $select: 'count(distinct trade_name) as n', $where: where },
+    host,
+  );
+
+  if (Number(rows) === 0) {
+    fail(`no NYC food inspections returned — this file spells counties in Title Case`);
+  } else {
+    const perEstablishment = Number(rows) / Number(establishments);
+    pass(
+      `${Number(rows).toLocaleString()} NYC inspection rows over ` +
+        `~${Number(establishments).toLocaleString()} establishments ` +
+        `(${perEstablishment.toFixed(1)} rows each)`,
+    );
+    if (perEstablishment < 2) {
+      warn(
+        `only ${perEstablishment.toFixed(1)} rows per establishment — this file may have moved ` +
+          `to one row per establishment, which would change what the dedupe in ` +
+          `AmenitiesService.fetchStoreGrades is collapsing`,
+      );
+    }
+  }
+} catch (err) {
+  fail(`food inspection checks failed — ${err.message}`);
+}
+
+// School outcomes are pinned to a vintage and a report type. A new year
+// publishing does not break anything, but the pinned year disappearing does.
+try {
+  const metrics = [SCHOOL_PROFICIENCY_METRICS.ela, SCHOOL_PROFICIENCY_METRICS.math]
+    .map((m) => `'${m}'`)
+    .join(',');
+  const rows = await soql(DATASETS.schoolQuality.id, {
+    $select: 'count(distinct dbn) as n',
+    $where:
+      `school_year=${SCHOOL_QUALITY_YEAR} AND report_type='${SCHOOL_QUALITY_REPORT_TYPE}' ` +
+      `AND metric_variable_name in(${metrics})`,
+  });
+  const schools = Number(rows[0]?.n ?? 0);
+
+  if (schools === 0) {
+    fail(
+      `no ${SCHOOL_QUALITY_YEAR} ${SCHOOL_QUALITY_REPORT_TYPE} proficiency rows — ` +
+        `the pinned year or metric names in datasets.ts are stale`,
+    );
+  } else {
+    pass(`${schools} schools report ${SCHOOL_QUALITY_YEAR} ELA/Math proficiency`);
+  }
+
+  const [{ n: newest }] = await soql(DATASETS.schoolQuality.id, {
+    $select: 'max(school_year) as n',
+  });
+  if (Number(newest) > SCHOOL_QUALITY_YEAR) {
+    warn(
+      `school year ${newest} is now published; SCHOOL_QUALITY_YEAR is pinned to ` +
+        `${SCHOOL_QUALITY_YEAR} — consider bumping it in packages/shared/src/datasets.ts`,
+    );
+  }
+} catch (err) {
+  fail(`school quality checks failed — ${err.message}`);
+}
+
+// Healthcare access is one FacDB subgroup. A rename would silently zero it.
+try {
+  const [{ n }] = await soql(DATASETS.facilities.id, {
+    $select: 'count(1) as n',
+    $where: `facsubgrp='${FACDB_HEALTHCARE_SUBGROUP}'`,
+  });
+  if (Number(n) === 0) {
+    fail(`FacDB subgroup '${FACDB_HEALTHCARE_SUBGROUP}' returned no rows — it may be renamed`);
+  } else {
+    pass(`${Number(n).toLocaleString()} FacDB '${FACDB_HEALTHCARE_SUBGROUP}' facilities`);
+  }
+} catch (err) {
+  fail(`healthcare facility checks failed — ${err.message}`);
 }
 
 // --- summary ----------------------------------------------------------------

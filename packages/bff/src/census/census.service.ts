@@ -28,6 +28,9 @@ export interface NtaDemographics {
  * ACS variables. Counts sum across tracts; medians do NOT — median household
  * income is approximated as a population-weighted mean of tract medians and
  * flagged as such. See specs/002 §Socioeconomic.
+ *
+ * The male and female band entries are the age 15-24 cohort: B01001 splits by
+ * sex first and then by band, so the cohort has to be summed from ten columns.
  */
 const VARS = {
   population: 'B01003_001E',
@@ -41,7 +44,6 @@ const VARS = {
   eduMaster: 'B15003_023E',
   eduProfessional: 'B15003_024E',
   eduDoctorate: 'B15003_025E',
-  // Age 15–24, both sexes. B01001 splits by sex then band.
   m15to17: 'B01001_006E',
   m18to19: 'B01001_007E',
   m20: 'B01001_008E',
@@ -124,6 +126,12 @@ export class CensusService {
     return out;
   }
 
+  /**
+   * The Census API signals key problems with a 302 to an HTML page rather than
+   * an error status. `fetch` follows that redirect, so a bad key arrives as a
+   * perfectly healthy 200 full of HTML — checking `res.ok` is not enough, and
+   * the redirect target is inspected instead.
+   */
   private async fetchTracts(): Promise<TractRow[]> {
     const key = this.config.censusApiKey;
     const varList = Object.values(VARS);
@@ -136,9 +144,6 @@ export class CensusService {
         `&for=tract:*&in=state:${NYS_STATE_FIPS}%20county:${boro.countyFips}` +
         `&key=${key ?? ''}`;
 
-      // The Census API signals key problems with a 302 to an HTML page rather
-      // than an error status. fetch follows that redirect, so a bad key arrives
-      // as a perfectly healthy 200 full of HTML — checking res.ok is not enough.
       const res = await fetch(url, { redirect: 'follow' });
 
       if (res.redirected || !res.url.startsWith(CENSUS_ACS_BASE)) {
@@ -249,8 +254,6 @@ function aggregateTracts(nta: Nta2020Code, rows: TractRow[]): NtaDemographics {
     sum(rows, 'm22to24') + sum(rows, 'f15to17') + sum(rows, 'f18to19') + sum(rows, 'f20') +
     sum(rows, 'f21') + sum(rows, 'f22to24');
 
-  // Medians cannot be summed. Weight each tract's median by its population —
-  // an approximation, flagged in the type so no consumer can forget.
   let incomeWeighted = 0;
   let incomeWeight = 0;
   for (const r of rows) {

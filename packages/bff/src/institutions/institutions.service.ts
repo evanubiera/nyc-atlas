@@ -2,13 +2,15 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   DATASETS,
   FACDB_CULTURAL_DOMAIN,
-  isWithinNycBounds,
   hasValue,
   type InstitutionScope,
   type Nta2020Code,
 } from '@nyc-atlas/shared';
 import { SocrataService } from '../socrata/socrata.service.js';
 import { GeographyService } from '../geography/geography.service.js';
+import { NtaLocator } from '../common/nta-locator.js';
+import { pointFromLatLonFields } from '../common/geo-point.js';
+import { RejectionLog } from '../common/rejection-log.js';
 
 export interface UnifiedInstitution {
   id: string;
@@ -70,113 +72,43 @@ export class InstitutionsService {
    * NTA code is missing or unknown falls back to point-in-polygon.
    */
   async fetchAll(): Promise<{ institutions: UnifiedInstitution[]; rejected: Map<string, number> }> {
-    const rejected = new Map<string, number>();
-    const bump = (reason: string): void => {
-      rejected.set(reason, (rejected.get(reason) ?? 0) + 1);
-    };
+    const rejections = new RejectionLog();
+    const bump = (reason: string): void => rejections.record(reason);
+    const locator = new NtaLocator(this.geography);
 
-    const [dcla, facdb] = await Promise.all([
+    const [dcla, facdb] = await this.fetchSources();
+    this.logger.log(`Fetched ${dcla.length} DCLA rows, ${facdb.length} FacDB rows`);
+
+    const unified = [
+      ...mapRows(dcla, (row) => toDclaInstitution(row, locator, bump)),
+      ...mapRows(facdb, (row) => toFacDbInstitution(row, locator, bump)),
+    ];
+
+    const deduped = this.dedupe(unified, bump);
+    this.logScopeCounts(deduped);
+
+    return { institutions: deduped, rejected: rejections.toMap() };
+  }
+
+  private fetchSources(): Promise<[DclaRow[], FacDbRow[]]> {
+    return Promise.all([
       this.socrata.query<DclaRow>(DATASETS.culturalOrgsDcla.id, { limit: 50_000 }),
       this.socrata.query<FacDbRow>(DATASETS.facilities.id, {
         where: `facdomain in('${FACDB_CULTURAL_DOMAIN}','${BROAD_EXTRA_DOMAIN}')`,
         limit: 50_000,
       }),
     ]);
-
-    this.logger.log(`Fetched ${dcla.length} DCLA rows, ${facdb.length} FacDB rows`);
-
-    const out: UnifiedInstitution[] = [];
-
-    for (const r of dcla) {
-      const lon = Number(r.longitude);
-      const lat = Number(r.latitude);
-      if (!isWithinNycBounds(lon, lat)) {
-        bump('DCLA: missing or out-of-bounds coordinates');
-        continue;
-      }
-      const name = (r.organization_name ?? '').trim();
-      if (name === '') {
-        bump('DCLA: missing organization name');
-        continue;
-      }
-      const nta = this.resolveNta(r.nta, lon, lat);
-      if (nta === null) bump('DCLA: could not resolve to an NTA');
-
-      out.push({
-        id: `DCLA:${slug(name)}:${lon.toFixed(5)},${lat.toFixed(5)}`,
-        name,
-        source: 'DCLA',
-        sourceId: slug(name),
-        lon,
-        lat,
-        nta2020: nta,
-        // The DCLA directory is the narrowest definition: funded arts orgs.
-        scope: 'NARROW',
-        discipline: hasValue(r.discipline) ? r.discipline.trim() : null,
-        facilitySubgroup: null,
-        facilityType: null,
-        dedupeKey: dedupeKey(r.bbl, name),
-      });
-    }
-
-    for (const r of facdb) {
-      const lon = Number(r.longitude);
-      const lat = Number(r.latitude);
-      if (!isWithinNycBounds(lon, lat)) {
-        bump('FacDB: missing or out-of-bounds coordinates');
-        continue;
-      }
-      const name = (r.facname ?? '').trim();
-      if (name === '') {
-        bump('FacDB: missing facility name');
-        continue;
-      }
-      const nta = this.resolveNta(r.nta2020, lon, lat);
-      if (nta === null) bump('FacDB: could not resolve to an NTA');
-
-      // Cultural facilities are STANDARD; parks and historical sites only
-      // count under BROAD.
-      const scope: InstitutionScope =
-        r.facdomain === FACDB_CULTURAL_DOMAIN ? 'STANDARD' : 'BROAD';
-
-      out.push({
-        id: `FACDB:${r.uid ?? slug(name)}`,
-        name,
-        source: 'FACDB',
-        sourceId: r.uid ?? slug(name),
-        lon,
-        lat,
-        nta2020: nta,
-        scope,
-        discipline: null,
-        facilitySubgroup: hasValue(r.facsubgrp) ? r.facsubgrp.trim() : null,
-        facilityType: hasValue(r.factype) ? r.factype.trim() : null,
-        dedupeKey: dedupeKey(r.bbl, name),
-      });
-    }
-
-    const deduped = this.dedupe(out, bump);
-    this.logger.log(
-      `Unified ${deduped.length} institutions ` +
-        `(${deduped.filter((i) => i.scope === 'NARROW').length} narrow, ` +
-        `${deduped.filter((i) => i.scope === 'STANDARD').length} standard, ` +
-        `${deduped.filter((i) => i.scope === 'BROAD').length} broad)`,
-    );
-
-    return { institutions: deduped, rejected };
   }
 
-  /**
-   * Prefers the upstream NTA code, falling back to point-in-polygon.
-   * An upstream code is only accepted if it names a known NTA — stale 2010
-   * codes and blanks must not silently become a neighborhood.
-   */
-  private resolveNta(upstream: string | undefined, lon: number, lat: number): Nta2020Code | null {
-    if (hasValue(upstream)) {
-      const code = upstream.trim();
-      if (this.geography.getRecord(code) !== undefined) return code;
-    }
-    return this.geography.resolvePoint(lon, lat);
+  private logScopeCounts(institutions: readonly UnifiedInstitution[]): void {
+    const countIn = (scope: InstitutionScope): number =>
+      institutions.filter((institution) => institution.scope === scope).length;
+
+    this.logger.log(
+      `Unified ${institutions.length} institutions ` +
+        `(${countIn('NARROW')} narrow, ${countIn('STANDARD')} standard, ` +
+        `${countIn('BROAD')} broad)`,
+    );
   }
 
   /**
@@ -205,6 +137,93 @@ export class InstitutionsService {
     }
     return [...byKey.values()];
   }
+}
+
+/** Drops rows the mapper could not use, keeping the ones it could. */
+function mapRows<T>(
+  rows: readonly T[],
+  toInstitution: (row: T) => UnifiedInstitution | null,
+): UnifiedInstitution[] {
+  const mapped: UnifiedInstitution[] = [];
+  for (const row of rows) {
+    const institution = toInstitution(row);
+    if (institution !== null) mapped.push(institution);
+  }
+  return mapped;
+}
+
+/** The DCLA directory is the narrowest definition: funded arts organizations. */
+function toDclaInstitution(
+  row: DclaRow,
+  locator: NtaLocator,
+  bump: (reason: string) => void,
+): UnifiedInstitution | null {
+  const point = pointFromLatLonFields(row.latitude, row.longitude);
+  if (point === null) {
+    bump('DCLA: missing or out-of-bounds coordinates');
+    return null;
+  }
+
+  const name = (row.organization_name ?? '').trim();
+  if (name === '') {
+    bump('DCLA: missing organization name');
+    return null;
+  }
+
+  const nta2020 = locator.fromUpstreamCodeOrPoint(row.nta, point);
+  if (nta2020 === null) bump('DCLA: could not resolve to an NTA');
+
+  return {
+    id: `DCLA:${slug(name)}:${point.lon.toFixed(5)},${point.lat.toFixed(5)}`,
+    name,
+    source: 'DCLA',
+    sourceId: slug(name),
+    lon: point.lon,
+    lat: point.lat,
+    nta2020,
+    scope: 'NARROW',
+    discipline: hasValue(row.discipline) ? row.discipline.trim() : null,
+    facilitySubgroup: null,
+    facilityType: null,
+    dedupeKey: dedupeKey(row.bbl, name),
+  };
+}
+
+/** Cultural facilities are STANDARD; parks and historical sites only count under BROAD. */
+function toFacDbInstitution(
+  row: FacDbRow,
+  locator: NtaLocator,
+  bump: (reason: string) => void,
+): UnifiedInstitution | null {
+  const point = pointFromLatLonFields(row.latitude, row.longitude);
+  if (point === null) {
+    bump('FacDB: missing or out-of-bounds coordinates');
+    return null;
+  }
+
+  const name = (row.facname ?? '').trim();
+  if (name === '') {
+    bump('FacDB: missing facility name');
+    return null;
+  }
+
+  const nta2020 = locator.fromUpstreamCodeOrPoint(row.nta2020, point);
+  if (nta2020 === null) bump('FacDB: could not resolve to an NTA');
+
+  return {
+    id: `FACDB:${row.uid ?? slug(name)}`,
+    name,
+    source: 'FACDB',
+    sourceId: row.uid ?? slug(name),
+    lon: point.lon,
+    lat: point.lat,
+    nta2020,
+    scope: row.facdomain === FACDB_CULTURAL_DOMAIN ? 'STANDARD' : 'BROAD',
+    discipline: null,
+    facilitySubgroup: hasValue(row.facsubgrp) ? row.facsubgrp.trim() : null,
+    facilityType: hasValue(row.factype) ? row.factype.trim() : null,
+    dedupeKey: dedupeKey(row.bbl, name),
+  };
 }
 
 function scopeRank(s: InstitutionScope): number {

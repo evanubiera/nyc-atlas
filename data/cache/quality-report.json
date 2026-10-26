@@ -1,8 +1,10 @@
 {
   "coordinatesRepaired": 23988,
-  "generatedAt": "2026-10-24T18:05:39.260Z",
+  "generatedAt": "2026-10-25T15:32:16.915Z",
   "notes": [
     "Historic complaints (2006-2019, qgea-i56i) were not ingested. Run with --historic to include them; shootings already span 2006-present.",
+    "31 of 1356 schools with 2024 proficiency data could not be placed in a neighborhood: their DBN is absent from the 2019-20 school location file (wg9x-4ke6), which is the newest vintage published. These are mostly charters that opened after 2020.",
+    "Food store grades come from 11,766 current inspections (collapsed from 94,910 deficiency rows); 91 could not be placed in a neighborhood. The grade is a sanitation result, not a measure of what a store sells or charges.",
     "Repaired 23,988 incident rows whose latitude and longitude columns were transposed upstream. The Shootings dataset (5ucz-vwe8) ships every record from 2006-01-01 to 2025-12-31 reversed; only 2026 additions are correct. Without this repair 98.7% of shootings would be silently discarded."
   ],
   "recoveredViaFallback": 3,
@@ -23,9 +25,19 @@
       "reason": "DCLA: missing or out-of-bounds coordinates"
     },
     {
+      "count": 227,
+      "dataset": "amenities",
+      "reason": "food stores: licence has no georeference"
+    },
+    {
       "count": 92,
       "dataset": "5uac-w243",
       "reason": "date before 2006 (data-entry error)"
+    },
+    {
+      "count": 86,
+      "dataset": "amenities",
+      "reason": "store grades: inspection has no georeference"
     },
     {
       "count": 63,
@@ -33,14 +45,44 @@
       "reason": "FacDB: could not resolve to an NTA"
     },
     {
+      "count": 38,
+      "dataset": "amenities",
+      "reason": "healthcare: residential program, not a care access point"
+    },
+    {
       "count": 34,
       "dataset": "5uac-w243",
       "reason": "point fell outside every NTA polygon"
     },
     {
+      "count": 31,
+      "dataset": "amenities",
+      "reason": "schools: DBN has outcomes but no location in the 2019-20 vintage"
+    },
+    {
+      "count": 8,
+      "dataset": "amenities",
+      "reason": "schools: proficiency row missing a value or a student count"
+    },
+    {
+      "count": 5,
+      "dataset": "amenities",
+      "reason": "store grades: could not resolve to an NTA"
+    },
+    {
+      "count": 4,
+      "dataset": "amenities",
+      "reason": "food stores: could not resolve to an NTA"
+    },
+    {
       "count": 3,
       "dataset": "5uac-w243",
       "reason": "coordinates missing, (0,0), or outside the NYC bounding box"
+    },
+    {
+      "count": 3,
+      "dataset": "amenities",
+      "reason": "healthcare: could not resolve to an NTA"
     },
     {
       "count": 1,

@@ -95,7 +95,6 @@ export class IncidentsService {
         const placed = this.place(row.longitude, row.latitude, row.cmplnt_fr_dt, outcome);
         if (placed === null) continue;
 
-        // ofns_desc is frequently the literal '(null)'; pd_desc recovers it.
         const cls = classifyOffense(row.ofns_desc, row.pd_desc);
         if (cls.unmapped && row.ofns_desc !== undefined) {
           outcome.unmappedOffenses.add(row.ofns_desc);
@@ -114,6 +113,12 @@ export class IncidentsService {
   /**
    * Validates a row and resolves it to an NTA and a month bucket.
    * Returns null for any row that cannot be trusted, recording why.
+   *
+   * Column order cannot be trusted: 98.7% of Shootings rows ship with latitude
+   * and longitude transposed. `resolveCoordinatePair` recovers them by range,
+   * which is unambiguous because NYC's latitude and longitude bands do not
+   * overlap. Offense labels are frequently the literal '(null)', which the
+   * pd_desc fallback inside `classifyOffense` recovers.
    */
   private place(
     lonRaw: string | undefined,
@@ -126,9 +131,6 @@ export class IncidentsService {
       return null;
     };
 
-    // Column order cannot be trusted: 98.7% of Shootings rows ship transposed.
-    // resolveCoordinatePair recovers them by range, which is unambiguous
-    // because NYC's lat and lon bands do not overlap.
     const resolved = resolveCoordinatePair(Number(latRaw), Number(lonRaw));
     if (resolved === null) return bump('coordinates missing, (0,0), or outside the NYC bounding box');
     const { lon, lat } = resolved;
@@ -136,7 +138,6 @@ export class IncidentsService {
 
     if (dateRaw === undefined || dateRaw === '') return bump('missing date');
     const iso = dateRaw.slice(0, 10);
-    // 58 complaint rows carry impossible dates; the minimum observed is 1016-04-30.
     if (iso < EARLIEST_VALID_INCIDENT_DATE) return bump('date before 2006 (data-entry error)');
     if (iso > new Date().toISOString().slice(0, 10)) return bump('date in the future');
 
